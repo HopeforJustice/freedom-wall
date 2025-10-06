@@ -1,0 +1,22 @@
+/* Custom Font Declarations */
+
+@font-face {
+    font-family: 'HandyFont';
+    src: url('/fonts/handy.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap; /* Improves loading performance */
+}
+
+@font-face {
+    font-family: 'HandyFont';
+    src: url('/fonts/handy.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Preload the font to ensure it's available when canvas tries to use it */
+body {
+    font-family: 'HandyFont', Arial, sans-serif;
+}
