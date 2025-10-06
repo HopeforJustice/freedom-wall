@@ -1,4 +1,4 @@
-# Three.js Journey
+# Digital Freedom Wall
 
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).
