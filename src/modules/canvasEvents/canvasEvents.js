@@ -86,7 +86,7 @@ function handleCanvasClick(event) {
  */
 function handleTouchStart(event) {
 	const touches = event.touches;
-	
+
 	if (touches.length === 1) {
 		// Single touch - potential button tap
 		const touch = touches[0];
@@ -94,7 +94,7 @@ function handleTouchStart(event) {
 		touchState.lastTouchTime = Date.now();
 		touchState.touchStartPosition = {
 			x: touch.clientX,
-			y: touch.clientY
+			y: touch.clientY,
 		};
 	} else if (touches.length === 2) {
 		// Two touches - pinch zoom
@@ -103,7 +103,7 @@ function handleTouchStart(event) {
 		const touch2 = touches[1];
 		const distance = Math.sqrt(
 			Math.pow(touch2.clientX - touch1.clientX, 2) +
-			Math.pow(touch2.clientY - touch1.clientY, 2)
+				Math.pow(touch2.clientY - touch1.clientY, 2)
 		);
 		touchState.lastTouchDistance = distance;
 		touchState.isFirstTouch = false;
@@ -112,7 +112,7 @@ function handleTouchStart(event) {
 
 function handleTouchMove(event) {
 	const touches = event.touches;
-	
+
 	if (touches.length === 2) {
 		// Pinch zoom
 		event.preventDefault();
@@ -120,19 +120,19 @@ function handleTouchMove(event) {
 		const touch2 = touches[1];
 		const distance = Math.sqrt(
 			Math.pow(touch2.clientX - touch1.clientX, 2) +
-			Math.pow(touch2.clientY - touch1.clientY, 2)
+				Math.pow(touch2.clientY - touch1.clientY, 2)
 		);
-		
+
 		if (touchState.lastTouchDistance > 0) {
 			const deltaDistance = distance - touchState.lastTouchDistance;
 			// Create a synthetic wheel event for zoom
 			const syntheticEvent = {
 				deltaY: -deltaDistance * 2, // Scale and invert for zoom
-				preventDefault: () => {}
+				preventDefault: () => {},
 			};
 			handleZoom(syntheticEvent);
 		}
-		
+
 		touchState.lastTouchDistance = distance;
 		touchState.isFirstTouch = false;
 	} else if (touches.length === 1 && touchState.isFirstTouch) {
@@ -140,9 +140,9 @@ function handleTouchMove(event) {
 		const touch = touches[0];
 		const moveDistance = Math.sqrt(
 			Math.pow(touch.clientX - touchState.touchStartPosition.x, 2) +
-			Math.pow(touch.clientY - touchState.touchStartPosition.y, 2)
+				Math.pow(touch.clientY - touchState.touchStartPosition.y, 2)
 		);
-		
+
 		// If moved more than 10px, it's not a tap
 		if (moveDistance > 10) {
 			touchState.isFirstTouch = false;
@@ -152,17 +152,17 @@ function handleTouchMove(event) {
 
 function handleTouchEnd(event) {
 	const touches = event.touches;
-	
+
 	// If this was a single touch that didn't move much and was quick, treat as tap
 	if (touches.length === 0 && touchState.isFirstTouch) {
 		const touchDuration = Date.now() - touchState.lastTouchTime;
-		
+
 		// If touch was less than 300ms, treat as button tap
 		if (touchDuration < 300) {
 			handleTouchTap(touchState.touchStartPosition);
 		}
 	}
-	
+
 	// Reset touch state
 	touchState.isFirstTouch = false;
 	touchState.lastTouchDistance = 0;

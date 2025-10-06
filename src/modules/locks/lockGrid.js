@@ -67,7 +67,11 @@ async function generateLockGrid() {
 	// Create a grid of locks to fill the plane
 	const gridSize = 32; //32*32 = 1024 locks
 	const spacing = 9; // Distance between locks - increased to prevent touching
+	const minDistance = 6; // Minimum distance between lock centers to prevent overlap
 	let lockIndex = 0;
+
+	// Array to store all lock positions for collision detection
+	const lockPositions = [];
 
 	for (let row = 0; row < gridSize; row++) {
 		for (let col = 0; col < gridSize; col++) {
@@ -78,18 +82,59 @@ async function generateLockGrid() {
 			cloned.rotation.x = Math.PI * 0.5;
 
 			// Add very subtle random Y rotation to each lock (between -2 and +2 degrees)
-			const randomYRotation = (Math.random() - 0.5) * 0.12; // 0.1 radians ≈ 6 degrees range
+			const randomYRotation = (Math.random() - 0.5) * 0.15;
 			cloned.rotation.y = randomYRotation;
 
 			// Flip the lock geometry horizontally using scale instead of rotation
 			cloned.scale.x = -1;
 
-			// Position locks in a grid pattern with row offset
+			// Position locks in a grid pattern with row offset and smart collision avoidance
 			const rowOffset = (row % 2) * (spacing * 0.5); // Offset every other row by half spacing
-			cloned.position.x =
-				col * spacing - (gridSize - 1) * spacing * 0.5 + rowOffset; // Center the grid with offset
-			cloned.position.y = row * spacing - (gridSize - 1) * spacing * 0.5; // Center the grid
+
+			let validPosition = false;
+			let attempts = 0;
+			let finalX, finalY;
+
+			while (!validPosition && attempts < 20) {
+				// Add random variation to position - reduced for fewer collisions
+				const maxVariation = spacing * 0.125;
+				const randomXOffset = (Math.random() - 0.5) * maxVariation;
+				const randomYOffset = (Math.random() - 0.5) * maxVariation;
+
+				finalX =
+					col * spacing -
+					(gridSize - 1) * spacing * 0.5 +
+					rowOffset +
+					randomXOffset;
+				finalY = row * spacing - (gridSize - 1) * spacing * 0.5 + randomYOffset;
+
+				// Check if this position conflicts with existing locks
+				validPosition = true;
+				for (const existingPos of lockPositions) {
+					const distance = Math.sqrt(
+						Math.pow(finalX - existingPos.x, 2) +
+							Math.pow(finalY - existingPos.y, 2)
+					);
+					if (distance < minDistance) {
+						validPosition = false;
+						break;
+					}
+				}
+				attempts++;
+			}
+
+			// If we couldn't find a valid position after attempts, use grid position with minimal offset
+			if (!validPosition) {
+				finalX = col * spacing - (gridSize - 1) * spacing * 0.5 + rowOffset;
+				finalY = row * spacing - (gridSize - 1) * spacing * 0.5;
+			}
+
+			cloned.position.x = finalX;
+			cloned.position.y = finalY;
 			cloned.position.z = 0;
+
+			// Store this position for future collision checks
+			lockPositions.push({ x: finalX, y: finalY });
 
 			scene.add(cloned);
 
@@ -130,10 +175,10 @@ async function generateLockGrid() {
 				textSettings.rotationZ
 			);
 			textPlane.scale.set(textSettings.scaleX, textSettings.scaleY, 1);
-			
+
 			// Counter-flip the text to appear normal since the lock is flipped
 			textPlane.scale.x = textPlane.scale.x * -1;
-			
+
 			textPlane.receiveShadow = false;
 			textPlane.castShadow = false;
 
