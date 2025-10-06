@@ -81,6 +81,9 @@ async function generateLockGrid() {
 			const randomYRotation = (Math.random() - 0.5) * 0.12; // 0.1 radians ≈ 6 degrees range
 			cloned.rotation.y = randomYRotation;
 
+			// Flip the lock geometry horizontally using scale instead of rotation
+			cloned.scale.x = -1;
+
 			// Position locks in a grid pattern with row offset
 			const rowOffset = (row % 2) * (spacing * 0.5); // Offset every other row by half spacing
 			cloned.position.x =
@@ -127,6 +130,10 @@ async function generateLockGrid() {
 				textSettings.rotationZ
 			);
 			textPlane.scale.set(textSettings.scaleX, textSettings.scaleY, 1);
+			
+			// Counter-flip the text to appear normal since the lock is flipped
+			textPlane.scale.x = textPlane.scale.x * -1;
+			
 			textPlane.receiveShadow = false;
 			textPlane.castShadow = false;
 
