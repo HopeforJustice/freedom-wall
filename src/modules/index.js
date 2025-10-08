@@ -1,5 +1,4 @@
 import { textSettings } from "./text/text";
-import { lockData } from "./locks/lockData";
 import { textConfig } from "./text/textConfig";
 import { waitForFontLoad } from "./text/text";
 import { createLockTextTexture } from "./text/text";
@@ -38,7 +37,6 @@ import {
 
 export {
 	textSettings,
-	lockData,
 	textConfig,
 	waitForFontLoad,
 	createLockTextTexture,

@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "dev:api": "node dev-server.js"
   },
   "devDependencies": {
     "vite": "^4.5.0"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "dotenv": "^17.2.3",
     "lil-gui": "^0.19.0",
     "three": "^0.158.0"
   }

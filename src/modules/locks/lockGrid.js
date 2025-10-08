@@ -10,10 +10,10 @@ import {
 	gltfLoader,
 	textSettings,
 	textPlanes,
-	lockData,
 	createLockTextTexture,
 } from "../index.js";
 import { createStoryButton } from "../animation/cameraAnimation.js";
+import { lockDataAPI } from "./lockDataAPI.js";
 
 // Array to store loaded lock models
 let lockModels = [];
@@ -64,6 +64,11 @@ function getRandomLockModel() {
 
 // Function to generate the lock grid after models are loaded
 async function generateLockGrid() {
+	// Fetch lock data from API
+	console.log('Fetching lock data from database...');
+	const lockData = await lockDataAPI.getLockData();
+	console.log(`Loaded ${lockData.length} locks from database`);
+
 	// Create a grid of locks to fill the plane
 	const gridSize = 32; //32*32 = 1024 locks
 	const spacing = 9; // Distance between locks - increased to prevent touching
