@@ -3495,10 +3495,10 @@ export const lockData = [
 		story: false,
 	},
 	{
-		name: "YONAS",
-		date: "2017",
+		name: "VINCA",
+		date: "2022",
 		id: 582,
-		story: false,
+		story: true,
 	},
 	{
 		name: "ANDREJS",

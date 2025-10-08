@@ -465,6 +465,80 @@ export function getRandomLockWithStory(excludeLock = null) {
 }
 
 /**
+ * Get a specific lock by ID from the scene (only if it has a story)
+ * @param {number} lockId - ID of the lock to retrieve
+ * @returns {THREE.Object3D|null} Lock object or null if not found or no story
+ */
+export function getLockById(lockId) {
+	let foundLock = null;
+
+	scene.traverse((child) => {
+		// Look for objects that have children with text planes
+		if (child.parent === scene && child.children.length > 0) {
+			// Check if this object has a text plane child with the matching lockId AND a story
+			const textPlane = child.children.find(
+				(grandChild) =>
+					grandChild.isMesh &&
+					grandChild.geometry instanceof THREE.PlaneGeometry &&
+					grandChild.userData &&
+					grandChild.userData.lockId === lockId &&
+					grandChild.userData.lockInfo &&
+					grandChild.userData.lockInfo.story === true
+			);
+			if (textPlane) {
+				foundLock = child;
+			}
+		}
+	});
+
+	console.log(
+		`Lock with ID ${lockId} ${
+			foundLock ? "found (with story)" : "not found or has no story"
+		}`
+	);
+	return foundLock;
+}
+
+/**
+ * Parse URL parameters and handle lock ID if provided
+ */
+export function handleUrlParameters() {
+	const urlParams = new URLSearchParams(window.location.search);
+	const lockId = urlParams.get("lockId");
+
+	if (lockId) {
+		const parsedLockId = parseInt(lockId, 10);
+		if (!isNaN(parsedLockId)) {
+			console.log(`URL parameter found: lockId=${parsedLockId}`);
+			// Wait a bit for the scene to be fully loaded
+			setTimeout(() => {
+				const targetLock = getLockById(parsedLockId);
+				if (targetLock) {
+					console.log(`Animating to lock with ID ${parsedLockId} (has story)`);
+					animateCameraToLock(targetLock.position, {
+						duration: 2500,
+						distance: 20,
+					});
+				} else {
+					console.warn(
+						`Lock with ID ${parsedLockId} not found or has no story. Using random story lock instead.`
+					);
+					const randomLock = getRandomLockWithStory();
+					if (randomLock) {
+						animateCameraToLock(randomLock.position, {
+							duration: 2500,
+							distance: 20,
+						});
+					}
+				}
+			}, 2000); // Give time for the scene to load
+		} else {
+			console.warn(`Invalid lockId parameter: ${lockId}`);
+		}
+	}
+}
+
+/**
  * Get a specific lock by index from the scene
  * @param {number} index - Index of the lock to retrieve
  * @returns {THREE.Object3D|null} Lock object or null if not found
@@ -621,7 +695,7 @@ export function stopCameraAnimation() {
  */
 export function createIntroAnimation(options = {}) {
 	const {
-		delay = 500,
+		delay = 0,
 		duration = 2500,
 		targetLockIndex = null,
 		distance = 8, // Default distance for intro animation

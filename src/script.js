@@ -15,6 +15,8 @@ import {
 	animateCameraToLock,
 	getRandomLock,
 	getLockByIndex,
+	getLockById,
+	handleUrlParameters,
 	createIntroAnimation,
 	findNewStory,
 	isCameraAnimating,
@@ -40,6 +42,7 @@ const cameraFolder = gui.addFolder("Camera Controls");
 cameraFolder
 	.add(wallControls, "sensitivity", 0.001, 0.05, 0.001)
 	.name("Mouse Sensitivity");
+gui.hide(); // Hide the GUI by default
 
 //lights
 scene.add(ambientLight);
@@ -53,13 +56,29 @@ scene.add(wall);
 
 // Start loading the lock models
 loadLockModels().then(() => {
-	// Start the intro animation after locks are generated
-	createIntroAnimation({
-		delay: 800, // Small delay to ensure everything is rendered
-		duration: 2500,
-		distance: 20, // Distance from the wall
-		targetLockIndex: null, // null for random lock, or specify index like 0, 15, etc.
-	});
+	// Hide loading circle when ready
+	const loadingCircle = document.getElementById("loadingCircle");
+	if (loadingCircle) {
+		loadingCircle.classList.add("fade-out");
+		// Remove from DOM after fade animation
+		setTimeout(() => {
+			loadingCircle.remove();
+		}, 10);
+	}
+
+	// Check for URL parameters first
+	handleUrlParameters();
+
+	// Start the intro animation after locks are generated (only if no URL params handled it)
+	const urlParams = new URLSearchParams(window.location.search);
+	if (!urlParams.has("lockId")) {
+		createIntroAnimation({
+			delay: 10, // Small delay to ensure everything is rendered
+			duration: 2500,
+			distance: 20, // Distance from the wall
+			targetLockIndex: null, // null for random lock, or specify index like 0, 15, etc.
+		});
+	}
 });
 
 // Initialize wall controls
