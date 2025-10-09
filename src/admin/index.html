@@ -1,300 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Freedom Wall - Admin Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Freedom Wall - Admin Dashboard</title>
+		<link rel="stylesheet" href="../tailwind.css" />
+	</head>
+	<body class="min-h-screen bg-white to-purple-600">
+		<!-- Authentication Status -->
+		<div
+			id="auth-status"
+			class="fixed bottom-2 left-2 z-50 flex items-center space-x-1 bg-white/90 backdrop-blur-sm rounded px-2 py-1 shadow text-xs"
+		>
+			<div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+			<span class="text-secondary-600">Dev</span>
+		</div>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
+		<div class="container mx-auto mt-4 p-6">
+			<!-- Header -->
+			<!-- <div class="card mb-6">
+				<div class="card-header">
+					<h1 class="text-2xl font-bold text-secondary-800">
+						Freedom Wall Admin Dashboard
+					</h1>
+					<p class="text-secondary-600 mt-2">
+						Manage locks and stories for the Freedom Wall installation
+					</p>
+				</div>
+			</div> -->
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+			<!-- Admin Sections Grid -->
+			<div class="grid grid-cols-1 gap-6">
+				<!-- Integrated Locks & Stories Management Section -->
+				<div class="card">
+					<div class="card-header">
+						<h2 class="text-lg font-semibold text-secondary-800">
+							Locks & Stories Management
+						</h2>
+					</div>
+					<div class="card-body">
+						<!-- Search Bar -->
+						<div class="mb-6">
+							<div class="flex gap-2">
+								<input
+									type="text"
+									id="lock-search"
+									placeholder="Search locks by name, date, or ID..."
+									class="flex-1 form-input"
+								/>
+								<button id="search-button" class="btn-primary">Search</button>
+							</div>
+						</div>
 
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+						<!-- Lock Management Layout -->
+						<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+							<!-- Lock Selection and Editing -->
+							<div
+								class="p-4 border border-secondary-200 rounded-lg bg-secondary-50"
+							>
+								<h3 class="text-lg font-medium mb-4 text-secondary-800">
+									Edit Lock & Story
+								</h3>
 
-        .header h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
+								<!-- Lock Selection -->
+								<div
+									id="lock-fields"
+									class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 hidden"
+								>
+									<div>
+										<label for="edit-lock-name" class="form-label">Name</label>
+										<input
+											type="text"
+											id="edit-lock-name"
+											class="form-input"
+											placeholder="Lock name"
+										/>
+									</div>
+									<div>
+										<label for="edit-lock-date" class="form-label">Date</label>
+										<input
+											type="text"
+											id="edit-lock-date"
+											class="form-input"
+											placeholder="YYYY"
+										/>
+									</div>
+								</div>
 
-        .auth-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+								<!-- Story Section -->
+								<div id="story-section" class="border-t pt-4 hidden">
+									<div class="flex items-center justify-between mb-3">
+										<h4 class="text-md font-medium text-secondary-800">
+											Story
+										</h4>
+										<div class="flex items-center space-x-2">
+											<input
+												type="checkbox"
+												id="has-story-checkbox"
+												class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+											/>
+											<label
+												for="has-story-checkbox"
+												class="text-sm text-secondary-700"
+												>Has Story</label
+											>
+										</div>
+									</div>
 
-        .admin-sections {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
+									<div id="story-fields" class="space-y-4 hidden">
+										<div>
+											<label for="story-title" class="form-label"
+												>Story Title</label
+											>
+											<input
+												type="text"
+												id="story-title"
+												class="form-input"
+												placeholder="Enter story title"
+											/>
+										</div>
+										<div>
+											<label for="story-body" class="form-label"
+												>Story Content</label
+											>
+											<textarea
+												id="story-body"
+												rows="6"
+												class="form-textarea"
+												placeholder="Enter the story content..."
+											></textarea>
+										</div>
+									</div>
+								</div>
 
-        .section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+								<!-- Action Buttons -->
+								<div class="flex gap-2 mt-6">
+									<button id="add-lock-button" class="btn-success">
+										Add New Lock
+									</button>
+									<button id="update-lock-button" class="btn-primary hidden">
+										Update Lock & Story
+									</button>
+									<button id="cancel-edit-button" class="btn-secondary hidden">
+										Cancel
+									</button>
+								</div>
+							</div>
 
-        .section h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
+							<!-- Locks List -->
+							<div class="border rounded-lg overflow-hidden">
+								<div class="bg-secondary-50 px-4 py-2 border-b">
+									<h3
+										id="locks-table-title"
+										class="font-medium text-secondary-800"
+									>
+										All Locks
+									</h3>
+								</div>
+								<div class="max-h-[60vh] overflow-y-auto">
+									<table class="table">
+										<thead class="table-header">
+											<tr>
+												<th class="table-header-cell">ID</th>
+												<th class="table-header-cell">Name</th>
+												<th class="table-header-cell">Date</th>
+												<th class="table-header-cell">Story</th>
+												<th class="table-header-cell">Actions</th>
+											</tr>
+										</thead>
+										<tbody id="locks-list" class="table-body">
+											<!-- Locks will be populated here -->
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+			<!-- Toast Notifications -->
+			<div id="toast-container" class="fixed top-4 right-4 space-y-2 z-50">
+				<!-- Toast messages will appear here -->
+			</div>
+		</div>
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        button {
-            background: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        button.danger {
-            background: #e74c3c;
-        }
-
-        button.danger:hover {
-            background: #c0392b;
-        }
-
-        button.success {
-            background: #27ae60;
-        }
-
-        button.success:hover {
-            background: #229954;
-        }
-
-        .locks-list, .stories-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 15px;
-        }
-
-        .lock-item, .story-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .lock-item:last-child, .story-item:last-child {
-            border-bottom: none;
-        }
-
-        .lock-info, .story-info {
-            flex: 1;
-        }
-
-        .lock-actions, .story-actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .message {
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            display: none;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        @media (max-width: 768px) {
-            .admin-sections {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Freedom Wall - Admin Dashboard</h1>
-            <p>Manage locks and stories for the Freedom Wall installation</p>
-        </div>
-
-        <div class="auth-section">
-            <h2>Authentication</h2>
-            <div id="auth-status">
-                <p>Checking authentication status...</p>
-            </div>
-        </div>
-
-        <div id="admin-content" class="hidden">
-            <div class="admin-sections">
-                <!-- Locks Management -->
-                <div class="section">
-                    <h2>Locks Management</h2>
-                    
-                    <div class="message" id="locks-message"></div>
-                    
-                    <form id="lock-form">
-                        <div class="form-group">
-                            <label for="lock-name">Name:</label>
-                            <input type="text" id="lock-name" name="name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="lock-date">Date:</label>
-                            <input type="text" id="lock-date" name="date" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="lock-story">Has Story:</label>
-                            <select id="lock-story" name="story">
-                                <option value="false">No</option>
-                                <option value="true">Yes</option>
-                            </select>
-                        </div>
-                        
-                        <button type="submit">Add Lock</button>
-                        <button type="button" id="cancel-lock-edit" class="hidden">Cancel Edit</button>
-                        <input type="hidden" id="lock-edit-id">
-                    </form>
-                    
-                    <div class="locks-list" id="locks-list">
-                        <div class="loading">Loading locks...</div>
-                    </div>
-                </div>
-
-                <!-- Stories Management -->
-                <div class="section">
-                    <h2>Stories Management</h2>
-                    
-                    <div class="message" id="stories-message"></div>
-                    
-                    <form id="story-form">
-                        <div class="form-group">
-                            <label for="story-lock-select">Lock:</label>
-                            <select id="story-lock-select" name="lock_id" required>
-                                <option value="">Select a lock with story enabled</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="story-title">Title:</label>
-                            <input type="text" id="story-title" name="title" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="story-body">Story Content:</label>
-                            <textarea id="story-body" name="body" required placeholder="Enter the full story content here..."></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="story-author">Author (optional):</label>
-                            <input type="text" id="story-author" name="author">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="story-featured">Featured:</label>
-                            <select id="story-featured" name="featured">
-                                <option value="false">No</option>
-                                <option value="true">Yes</option>
-                            </select>
-                        </div>
-                        
-                        <button type="submit">Add Story</button>
-                        <button type="button" id="cancel-story-edit" class="hidden">Cancel Edit</button>
-                        <input type="hidden" id="story-edit-id">
-                    </form>
-                    
-                    <div class="stories-list" id="stories-list">
-                        <div class="loading">Loading stories...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module" src="./admin.js"></script>
-</body>
+		<script type="module" src="admin.js"></script>
+	</body>
 </html>

@@ -193,15 +193,54 @@ function handleTouchTap(position) {
 }
 
 /**
- * Show lock story (placeholder for now)
+ * Show lock story by fetching it from the API
  * @param {Object} lockInfo - Lock information object
  */
-function showLockStory(lockInfo) {
-	// Placeholder - you can replace this with your story display logic
-	alert(
-		`Story for ${lockInfo.name}\n\nDate: ${lockInfo.date}\nID: ${lockInfo.id}\n\n[This is where the lock's story would be displayed]`
-	);
-	console.log("Show story for lock:", lockInfo);
+async function showLockStory(lockInfo) {
+	try {
+		console.log("Fetching story for lock:", lockInfo);
+
+		// Fetch story from API
+		const response = await fetch(`/api/stories/${lockInfo.id}`);
+		console.log("API response status:", response.status, response.statusText);
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const result = await response.json();
+		console.log("API response data:", result);
+
+		if (result.success && result.data) {
+			const story = result.data;
+
+			// Create a formatted alert with the story content
+			const alertMessage = [
+				`Story for ${lockInfo.name}`,
+				``,
+				`Date: ${lockInfo.date}`,
+				`ID: ${lockInfo.id}`,
+				``,
+				story.title ? `Title: ${story.title}` : "",
+				``,
+				`Story:`,
+				story.content || "[No story content available]",
+			]
+				.filter((line) => line !== "")
+				.join("\n");
+
+			alert(alertMessage);
+		} else {
+			alert(
+				`Story for ${lockInfo.name}\n\nNo story content available for this lock.`
+			);
+		}
+	} catch (error) {
+		console.error("Error fetching story:", error);
+		alert(
+			`Story for ${lockInfo.name}\n\nError loading story: ${error.message}\n\nPlease try again later.`
+		);
+	}
 }
 
 export const createCanvasEvents = (wallControls) => {

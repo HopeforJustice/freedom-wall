@@ -17,6 +17,8 @@ import { lockDataAPI } from "./lockDataAPI.js";
 
 // Array to store loaded lock models
 let lockModels = [];
+let currentLockMeshes = []; // Track current lock meshes for cleanup
+
 const lockModelPaths = [
 	"/models/lockOne-no-text.glb",
 	"/models/lockTwo-no-text.glb",
@@ -56,6 +58,48 @@ export async function loadLockModels() {
 	}
 }
 
+// Function to clear existing locks from the scene
+function clearLockGrid() {
+	// Remove all current lock meshes from scene
+	currentLockMeshes.forEach((mesh) => {
+		scene.remove(mesh);
+		// Dispose of geometries and materials to free memory
+		if (mesh.geometry) mesh.geometry.dispose();
+		if (mesh.material) {
+			if (Array.isArray(mesh.material)) {
+				mesh.material.forEach((mat) => mat.dispose());
+			} else {
+				mesh.material.dispose();
+			}
+		}
+	});
+
+	// Clear the arrays
+	currentLockMeshes.length = 0;
+	textPlanes.length = 0;
+
+	console.log("Cleared existing lock grid");
+}
+
+// Function to regenerate the lock grid (useful after lock deletions)
+export async function regenerateLockGrid() {
+	if (lockModels.length === 0) {
+		console.warn("Lock models not loaded yet, cannot regenerate grid");
+		return;
+	}
+
+	// Clear cache to ensure fresh data
+	lockDataAPI.clearCache();
+
+	// Clear existing grid
+	clearLockGrid();
+
+	// Generate new grid
+	await generateLockGrid();
+
+	console.log("Lock grid regenerated successfully");
+}
+
 // Function to randomly select a lock model
 function getRandomLockModel() {
 	const randomIndex = Math.floor(Math.random() * lockModels.length);
@@ -65,21 +109,24 @@ function getRandomLockModel() {
 // Function to generate the lock grid after models are loaded
 async function generateLockGrid() {
 	// Fetch lock data from API
-	console.log('Fetching lock data from database...');
+	console.log("Fetching lock data from database...");
 	const lockData = await lockDataAPI.getLockData();
 	console.log(`Loaded ${lockData.length} locks from database`);
 
-	// Create a grid of locks to fill the plane
-	const gridSize = 32; //32*32 = 1024 locks
+	// Calculate grid dimensions based on actual number of locks
+	const totalLocks = lockData.length;
+	const gridSize = Math.ceil(Math.sqrt(totalLocks)); // Square grid that fits all locks
 	const spacing = 9; // Distance between locks - increased to prevent touching
 	const minDistance = 6; // Minimum distance between lock centers to prevent overlap
 	let lockIndex = 0;
 
+	console.log(`Creating ${gridSize}x${gridSize} grid for ${totalLocks} locks`);
+
 	// Array to store all lock positions for collision detection
 	const lockPositions = [];
 
-	for (let row = 0; row < gridSize; row++) {
-		for (let col = 0; col < gridSize; col++) {
+	for (let row = 0; row < gridSize && lockIndex < totalLocks; row++) {
+		for (let col = 0; col < gridSize && lockIndex < totalLocks; col++) {
 			// Randomly select a lock model for this position
 			const selectedModel = getRandomLockModel();
 			const cloned = selectedModel.clone();
@@ -141,21 +188,13 @@ async function generateLockGrid() {
 			// Store this position for future collision checks
 			lockPositions.push({ x: finalX, y: finalY });
 
+			// Track this mesh for cleanup
+			currentLockMeshes.push(cloned);
+
 			scene.add(cloned);
 
-			// Add text plane to each model
-			let lockInfo;
-			if (lockIndex < lockData.length) {
-				lockInfo = lockData[lockIndex];
-			} else {
-				// Use default data when we run out of lock data
-				lockInfo = {
-					name: "NAME",
-					date: "2025",
-					id: lockIndex,
-					story: false, // Default locks don't have stories
-				};
-			}
+			// Add text plane to each model - only use real lock data
+			const lockInfo = lockData[lockIndex];
 
 			const textTexture = await createLockTextTexture(lockInfo);
 			const textMaterial = new THREE.MeshBasicMaterial({

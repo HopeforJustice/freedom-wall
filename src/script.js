@@ -76,7 +76,7 @@ loadLockModels().then(() => {
 			delay: 10, // Small delay to ensure everything is rendered
 			duration: 2500,
 			distance: 20, // Distance from the wall
-			targetLockIndex: null, // null for random lock, or specify index like 0, 15, etc.
+			targetLockId: null, // null for random lock, or specify lock ID like 253
 		});
 	}
 });
@@ -111,6 +111,29 @@ if (findNewStoryBtn) {
 		}
 	});
 }
+
+// Listen for lock grid regeneration requests from admin interface
+window.addEventListener("message", (event) => {
+	if (event.data && event.data.type === "REGENERATE_LOCK_GRID") {
+		console.log("Received lock grid regeneration request");
+		import("./modules/locks/lockGrid.js").then((module) => {
+			module.regenerateLockGrid();
+		});
+	}
+});
+
+// Also listen for localStorage changes as fallback
+let lastRegenerateTime = localStorage.getItem("lockGridRegenerate");
+setInterval(() => {
+	const currentRegenerateTime = localStorage.getItem("lockGridRegenerate");
+	if (currentRegenerateTime && currentRegenerateTime !== lastRegenerateTime) {
+		lastRegenerateTime = currentRegenerateTime;
+		console.log("Detected lock grid regeneration request via localStorage");
+		import("./modules/locks/lockGrid.js").then((module) => {
+			module.regenerateLockGrid();
+		});
+	}
+}, 1000);
 
 // Start the animation loop
 tick();

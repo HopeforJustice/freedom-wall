@@ -1,19 +1,19 @@
-import { neon } from '@neondatabase/serverless';
+import { neon } from "@neondatabase/serverless";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+	if (req.method !== "POST") {
+		return res.status(405).json({ error: "Method not allowed" });
+	}
 
-  try {
-    const sql = neon(process.env.DATABASE_URL);
+	try {
+		const sql = neon(process.env.DATABASE_URL);
 
-    // Drop existing tables to ensure clean schema
-    await sql`DROP TABLE IF EXISTS stories CASCADE`;
-    await sql`DROP TABLE IF EXISTS locks CASCADE`;
+		// Drop existing tables to ensure clean schema
+		await sql`DROP TABLE IF EXISTS stories CASCADE`;
+		await sql`DROP TABLE IF EXISTS locks CASCADE`;
 
-    // Create locks table
-    await sql`
+		// Create locks table
+		await sql`
       CREATE TABLE IF NOT EXISTS locks (
         id SERIAL PRIMARY KEY,
         lock_id INTEGER UNIQUE NOT NULL,
@@ -28,8 +28,8 @@ export default async function handler(req, res) {
       )
     `;
 
-    // Create stories table for rich story content
-    await sql`
+		// Create stories table for rich story content
+		await sql`
       CREATE TABLE IF NOT EXISTS stories (
         id SERIAL PRIMARY KEY,
         lock_id INTEGER UNIQUE NOT NULL,
@@ -43,22 +43,21 @@ export default async function handler(req, res) {
       )
     `;
 
-    // Create index on lock_id for faster queries
-    await sql`CREATE INDEX IF NOT EXISTS idx_locks_lock_id ON locks(lock_id)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_locks_story ON locks(story)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_stories_lock_id ON stories(lock_id)`;
+		// Create index on lock_id for faster queries
+		await sql`CREATE INDEX IF NOT EXISTS idx_locks_lock_id ON locks(lock_id)`;
+		await sql`CREATE INDEX IF NOT EXISTS idx_locks_story ON locks(story)`;
+		await sql`CREATE INDEX IF NOT EXISTS idx_stories_lock_id ON stories(lock_id)`;
 
-    res.status(200).json({ 
-      message: 'Database setup completed successfully',
-      tables: ['locks', 'stories'],
-      indexes: ['idx_locks_lock_id', 'idx_locks_story', 'idx_stories_lock_id']
-    });
-
-  } catch (error) {
-    console.error('Database setup error:', error);
-    res.status(500).json({ 
-      error: 'Failed to setup database',
-      details: error.message 
-    });
-  }
+		res.status(200).json({
+			message: "Database setup completed successfully",
+			tables: ["locks", "stories"],
+			indexes: ["idx_locks_lock_id", "idx_locks_story", "idx_stories_lock_id"],
+		});
+	} catch (error) {
+		console.error("Database setup error:", error);
+		res.status(500).json({
+			error: "Failed to setup database",
+			details: error.message,
+		});
+	}
 }

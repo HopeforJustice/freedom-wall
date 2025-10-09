@@ -1,367 +1,557 @@
-// Admin Dashboard JavaScript
-// Handles CRUD operations for locks and stories
+// Integrated Admin Interface
+// Manages locks and stories in a single integrated workflow
 
-class AdminDashboard {
-    constructor() {
-        // Determine API base URL based on environment
-        this.apiBase = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3001/api' 
-            : '/api';
-        
-        this.currentEditingLock = null;
-        this.currentEditingStory = null;
-        this.isAuthenticated = false;
-        
-        this.init();
-    }
+class AdminInterface {
+	constructor() {
+		// Determine API base URL based on environment
+		this.apiBase =
+			window.location.hostname === "localhost"
+				? "http://localhost:3001/api"
+				: "/api";
 
-    async init() {
-        await this.checkAuth();
-        if (this.isAuthenticated) {
-            this.initializeEventListeners();
-            await this.loadLocks();
-            await this.loadStories();
-            await this.populateStoryLockSelect();
-        }
-    }
+		this.locks = [];
+		this.filteredLocks = [];
+		this.selectedLock = null;
+		this.isAuthenticated = false;
 
-    async checkAuth() {
-        try {
-            // For now, we'll use a simple check - in production, integrate with Stack Auth
-            // TODO: Implement proper Stack Auth integration
-            const authStatus = document.getElementById('auth-status');
-            
-            // Temporary: Allow access for development
-            this.isAuthenticated = true;
-            authStatus.innerHTML = `
-                <p style="color: green;">✓ Authenticated as Admin (Development Mode)</p>
-                <p><small>In production, this will use Stack Auth</small></p>
+		this.init();
+	}
+
+	async init() {
+		await this.checkAuth();
+		if (this.isAuthenticated) {
+			this.initializeEventListeners();
+			await this.loadLocks();
+		}
+	}
+
+	async checkAuth() {
+		try {
+			// For now, we'll use a simple check - in production, integrate with Stack Auth
+			// TODO: Implement proper Stack Auth integration
+			const authStatus = document.getElementById("auth-status");
+
+			// Temporary: Allow access for development
+			this.isAuthenticated = true;
+			authStatus.innerHTML = `
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span class="text-secondary-700">✓ Authenticated as Admin (Development Mode)</span>
             `;
-            document.getElementById('admin-content').classList.remove('hidden');
-            
-        } catch (error) {
-            console.error('Auth check failed:', error);
-            document.getElementById('auth-status').innerHTML = `
-                <p style="color: red;">❌ Authentication failed</p>
-                <p>Please ensure you have admin privileges</p>
+		} catch (error) {
+			console.error("Auth check failed:", error);
+			const authStatus = document.getElementById("auth-status");
+			authStatus.innerHTML = `
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span class="text-red-700">❌ Authentication failed - Please ensure you have admin privileges</span>
             `;
-        }
-    }
+		}
+	}
 
-    initializeEventListeners() {
-        // Lock form
-        document.getElementById('lock-form').addEventListener('submit', (e) => this.handleLockSubmit(e));
-        document.getElementById('cancel-lock-edit').addEventListener('click', () => this.cancelLockEdit());
-        
-        // Story form
-        document.getElementById('story-form').addEventListener('submit', (e) => this.handleStorySubmit(e));
-        document.getElementById('cancel-story-edit').addEventListener('click', () => this.cancelStoryEdit());
-    }
+	initializeEventListeners() {
+		// Search functionality
+		document
+			.getElementById("lock-search")
+			.addEventListener("input", (e) => this.handleSearch(e.target.value));
 
-    // Utility methods
-    showMessage(elementId, message, type = 'success') {
-        const element = document.getElementById(elementId);
-        element.textContent = message;
-        element.className = `message ${type}`;
-        element.style.display = 'block';
-        
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 5000);
-    }
+		// Bind methods to preserve 'this' context
+		this.handleAddNewLock = this.addNewLock.bind(this);
+		this.handleCreateLock = this.createLock.bind(this);
+		this.handleUpdateLock = this.updateLock.bind(this);
+		this.handleCancelEdit = this.cancelEdit.bind(this);
 
-    // Locks Management
-    async loadLocks() {
-        try {
-            const response = await fetch(`${this.apiBase}/locks`);
-            const data = await response.json();
-            this.renderLocks(data.locks);
-        } catch (error) {
-            console.error('Failed to load locks:', error);
-            this.showMessage('locks-message', 'Failed to load locks', 'error');
-        }
-    }
+		// Add new lock button
+		document
+			.getElementById("add-lock-button")
+			.addEventListener("click", this.handleAddNewLock);
 
-    renderLocks(locks) {
-        const container = document.getElementById('locks-list');
-        
-        if (!locks || locks.length === 0) {
-            container.innerHTML = '<div class="loading">No locks found</div>';
-            return;
-        }
+		// Update lock button
+		document
+			.getElementById("update-lock-button")
+			.addEventListener("click", this.handleUpdateLock);
 
-        container.innerHTML = locks.map(lock => `
-            <div class="lock-item">
-                <div class="lock-info">
-                    <strong>${lock.name}</strong> (${lock.date}) 
-                    ${lock.story ? '<span style="color: #27ae60;">📖 Has Story</span>' : ''}
-                    <br><small>ID: ${lock.lock_id}</small>
-                </div>
-                <div class="lock-actions">
-                    <button onclick="adminDashboard.editLock(${lock.lock_id})">Edit</button>
-                    <button class="danger" onclick="adminDashboard.deleteLock(${lock.lock_id})">Delete</button>
-                </div>
+		// Cancel edit button
+		document
+			.getElementById("cancel-edit-button")
+			.addEventListener("click", this.handleCancelEdit);
+
+		// Story checkbox toggle
+		document
+			.getElementById("has-story-checkbox")
+			.addEventListener("change", (e) =>
+				this.toggleStoryFields(e.target.checked)
+			);
+
+		// Auto-check story checkbox when story content is entered
+		document
+			.getElementById("story-title")
+			.addEventListener("input", () => this.handleStoryContentChange());
+		document
+			.getElementById("story-body")
+			.addEventListener("input", () => this.handleStoryContentChange());
+
+		// Form validation
+		document
+			.getElementById("edit-lock-name")
+			.addEventListener("input", () => this.validateForm());
+		document
+			.getElementById("edit-lock-date")
+			.addEventListener("input", () => this.validateForm());
+	}
+
+	// Search functionality
+	handleSearch(query) {
+		const tableTitle = document.getElementById("locks-table-title");
+
+		if (!query.trim()) {
+			this.filteredLocks = [...this.locks];
+			tableTitle.textContent = "All Locks";
+		} else {
+			const searchTerm = query.toLowerCase();
+			this.filteredLocks = this.locks.filter(
+				(lock) =>
+					lock.name.toLowerCase().includes(searchTerm) ||
+					lock.lock_id.toString().includes(searchTerm) ||
+					lock.date.includes(searchTerm)
+			);
+			tableTitle.textContent = `Locks Found (${this.filteredLocks.length})`;
+		}
+		this.renderLocksList();
+	}
+
+	// Load and display locks
+	async loadLocks() {
+		try {
+			const response = await fetch(`${this.apiBase}/locks`);
+			const data = await response.json();
+			this.locks = data.locks || [];
+			this.filteredLocks = [...this.locks];
+
+			// Set initial table title
+			const tableTitle = document.getElementById("locks-table-title");
+			tableTitle.textContent = "All Locks";
+
+			this.renderLocksList();
+		} catch (error) {
+			console.error("Failed to load locks:", error);
+			this.showToast("Failed to load locks", "error");
+		}
+	}
+
+	renderLocksList() {
+		const container = document.getElementById("locks-list");
+
+		if (this.filteredLocks.length === 0) {
+			container.innerHTML = `
+                <tr>
+                    <td colspan="5" class="table-cell text-center text-secondary-500 py-8">
+                        No locks found
+                    </td>
+                </tr>
+            `;
+			return;
+		}
+
+		container.innerHTML = this.filteredLocks
+			.map(
+				(lock) => `
+            <tr class="table-row">
+                <td class="table-cell font-mono text-sm">${lock.lock_id}</td>
+                <td class="table-cell font-medium">${lock.name}</td>
+                <td class="table-cell">${lock.date}</td>
+                <td class="table-cell">
+                    ${
+											lock.story_title
+												? '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">📖 Story</span>'
+												: lock.story
+												? '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">📝 Story Enabled</span>'
+												: '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">No Story</span>'
+										}
+                </td>
+                <td class="table-cell">
+                    <div class="flex space-x-2">
+                        <button onclick="adminInterface.loadLockById(${
+													lock.lock_id
+												})" 
+                                class="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded border border-blue-300 transition-colors">
+                            Edit
+                        </button>
+                        <button onclick="adminInterface.deleteLock(${
+													lock.lock_id
+												})" 
+                                class="text-sm px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded border border-red-300 transition-colors">
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `
+			)
+			.join("");
+	}
+
+	async loadLockById(lockId) {
+		try {
+			const response = await fetch(`${this.apiBase}/lock?id=${lockId}`);
+			const data = await response.json();
+			this.selectedLock = data.lock;
+
+			// Show lock fields and story section
+			document.getElementById("lock-fields").classList.remove("hidden");
+			document.getElementById("story-section").classList.remove("hidden"); // Populate the form
+			document.getElementById("edit-lock-name").value = this.selectedLock.name;
+			document.getElementById("edit-lock-date").value = this.selectedLock.date;
+
+			// Handle story data
+			const hasStory = this.selectedLock.story;
+			document.getElementById("has-story-checkbox").checked = hasStory;
+			this.toggleStoryFields(hasStory);
+
+			if (hasStory && this.selectedLock.story_title) {
+				document.getElementById("story-title").value =
+					this.selectedLock.story_title;
+				document.getElementById("story-body").value =
+					this.selectedLock.story_body || "";
+			}
+
+			// Show update and cancel buttons, hide add button
+			document.getElementById("add-lock-button").classList.add("hidden");
+			document.getElementById("update-lock-button").classList.remove("hidden");
+			document.getElementById("cancel-edit-button").classList.remove("hidden");
+
+			this.showToast(`Loaded lock: ${this.selectedLock.name}`);
+		} catch (error) {
+			console.error("Error loading lock:", error);
+			this.showToast("Failed to load lock", "error");
+		}
+	}
+
+	addNewLock() {
+		// Clear the form and switch to create mode
+		this.selectedLock = null;
+		document.getElementById("edit-lock-name").value = "";
+		document.getElementById("edit-lock-date").value = "";
+		document.getElementById("has-story-checkbox").checked = false;
+		document.getElementById("story-title").value = "";
+		document.getElementById("story-body").value = "";
+		this.toggleStoryFields(false);
+
+		// Show lock fields and story section
+		document.getElementById("lock-fields").classList.remove("hidden");
+		document.getElementById("story-section").classList.remove("hidden");
+
+		// Show add button as primary action, hide others
+		const addBtn = document.getElementById("add-lock-button");
+		addBtn.classList.remove("hidden");
+		addBtn.textContent = "Create Lock";
+
+		// Remove any existing event listeners and add new one
+		addBtn.removeEventListener("click", this.handleAddNewLock);
+		addBtn.removeEventListener("click", this.handleCreateLock);
+		addBtn.addEventListener("click", this.handleCreateLock);
+
+		document.getElementById("update-lock-button").classList.add("hidden");
+		document.getElementById("cancel-edit-button").classList.remove("hidden");
+
+		this.showToast("Ready to create new lock");
+	}
+
+	cancelEdit() {
+		// Reset to initial state
+		this.selectedLock = null;
+		document.getElementById("edit-lock-name").value = "";
+		document.getElementById("edit-lock-date").value = "";
+		document.getElementById("has-story-checkbox").checked = false;
+		document.getElementById("story-title").value = "";
+		document.getElementById("story-body").value = "";
+		this.toggleStoryFields(false);
+
+		// Hide lock fields and story section
+		document.getElementById("lock-fields").classList.add("hidden");
+		document.getElementById("story-section").classList.add("hidden");
+
+		// Reset buttons
+		const addBtn = document.getElementById("add-lock-button");
+		addBtn.classList.remove("hidden");
+		addBtn.textContent = "Add New Lock";
+
+		// Remove create lock listener and restore add new lock listener
+		addBtn.removeEventListener("click", this.handleCreateLock);
+		addBtn.removeEventListener("click", this.handleAddNewLock);
+		addBtn.addEventListener("click", this.handleAddNewLock);
+
+		document.getElementById("update-lock-button").classList.add("hidden");
+		document.getElementById("cancel-edit-button").classList.add("hidden");
+	}
+
+	async createLock() {
+		const nameElement = document.getElementById("edit-lock-name");
+		const dateElement = document.getElementById("edit-lock-date");
+
+		const name = nameElement?.value?.trim() || "";
+		const date = dateElement?.value?.trim() || "";
+
+		if (!name || !date) {
+			this.showToast("Name and date are required", "error");
+			return;
+		}
+
+		// Generate next available lock ID
+		const nextLockId = this.getNextLockId();
+
+		const lockData = {
+			lock_id: nextLockId,
+			name: name,
+			date: date,
+			story: document.getElementById("has-story-checkbox").checked,
+			position_x: 0, // Default position
+			position_y: 0,
+			position_z: 0,
+		};
+
+		// Check if there's story content entered
+		const storyTitle = document.getElementById("story-title").value;
+		const storyBody = document.getElementById("story-body").value;
+
+		// Include story data if story checkbox is checked OR if there's actual story content
+		if (lockData.story || storyTitle || storyBody) {
+			lockData.story = true; // Ensure story is enabled if content exists
+			lockData.story_title = storyTitle || null;
+			lockData.story_body = storyBody || null;
+			lockData.story_author = null;
+			lockData.story_featured = false;
+		}
+
+		try {
+			const response = await fetch(`${this.apiBase}/admin/locks`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(lockData),
+			});
+
+			if (response.ok) {
+				this.showToast("Lock created successfully");
+				await this.loadLocks();
+
+				// Trigger lock grid regeneration for new lock
+				this.triggerLockGridRegeneration();
+
+				this.cancelEdit(); // Reset form
+			} else {
+				const errorData = await response.json();
+				throw new Error(errorData.error || "Failed to create lock");
+			}
+		} catch (error) {
+			console.error("Error creating lock:", error);
+			this.showToast(`Failed to create lock: ${error.message}`, "error");
+		}
+	}
+
+	getNextLockId() {
+		// Find the highest lock_id and add 1
+		if (this.locks.length === 0) {
+			return 1;
+		}
+		const maxId = Math.max(...this.locks.map((lock) => lock.lock_id));
+		return maxId + 1;
+	}
+
+	async updateLock() {
+		if (!this.selectedLock) {
+			this.showToast("No lock selected", "error");
+			return;
+		}
+
+		const lockData = {
+			name: document.getElementById("edit-lock-name").value,
+			date: document.getElementById("edit-lock-date").value,
+			story: document.getElementById("has-story-checkbox").checked,
+		};
+
+		// Check if there's story content entered
+		const storyTitle = document.getElementById("story-title").value;
+		const storyBody = document.getElementById("story-body").value;
+
+		// Include story data if story checkbox is checked OR if there's actual story content
+		if (lockData.story || storyTitle || storyBody) {
+			lockData.story = true; // Ensure story is enabled if content exists
+			lockData.story_title = storyTitle || null;
+			lockData.story_body = storyBody || null;
+			lockData.story_author = null;
+			lockData.story_featured = false;
+		}
+
+		try {
+			const response = await fetch(
+				`${this.apiBase}/admin/locks/${this.selectedLock.lock_id}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(lockData),
+				}
+			);
+
+			if (response.ok) {
+				this.showToast("Lock updated successfully");
+				await this.loadLocks();
+				// Reload the lock to refresh the form with updated data
+				await this.loadLockById(this.selectedLock.lock_id);
+			} else {
+				throw new Error("Failed to update lock");
+			}
+		} catch (error) {
+			console.error("Error updating lock:", error);
+			this.showToast("Failed to update lock", "error");
+		}
+	}
+
+	toggleStoryFields(show) {
+		const storyFields = document.getElementById("story-fields");
+		if (show) {
+			storyFields.classList.remove("hidden");
+		} else {
+			storyFields.classList.add("hidden");
+			// Clear story fields
+			document.getElementById("story-title").value = "";
+			document.getElementById("story-body").value = "";
+		}
+	}
+
+	handleStoryContentChange() {
+		// Auto-check the story checkbox if any story content is entered
+		const storyTitle = document.getElementById("story-title").value;
+		const storyBody = document.getElementById("story-body").value;
+
+		if (storyTitle || storyBody) {
+			const checkbox = document.getElementById("has-story-checkbox");
+			if (!checkbox.checked) {
+				checkbox.checked = true;
+				this.toggleStoryFields(true);
+			}
+		}
+	}
+
+	async deleteLock(lockId) {
+		if (
+			!confirm(
+				"Are you sure you want to delete this lock? This will also delete any associated story."
+			)
+		) {
+			return;
+		}
+
+		try {
+			const response = await fetch(`${this.apiBase}/admin/locks/${lockId}`, {
+				method: "DELETE",
+			});
+
+			if (response.ok) {
+				this.showToast("Lock deleted successfully");
+				await this.loadLocks();
+
+				// Trigger lock grid regeneration if it exists (for main app)
+				this.triggerLockGridRegeneration();
+
+				// If the deleted lock was selected, clear the selection
+				if (this.selectedLock?.lock_id === lockId) {
+					this.cancelEdit();
+				}
+			} else {
+				throw new Error("Failed to delete lock");
+			}
+		} catch (error) {
+			console.error("Error deleting lock:", error);
+			this.showToast("Failed to delete lock", "error");
+		}
+	}
+
+	// Form validation
+	validateForm() {
+		const name = document.getElementById("edit-lock-name").value.trim();
+		const date = document.getElementById("edit-lock-date").value.trim();
+		const updateBtn = document.getElementById("update-lock-button");
+		const addBtn = document.getElementById("add-lock-button");
+
+		const isValid = name && date;
+
+		// Handle update button
+		if (!updateBtn.classList.contains("hidden")) {
+			updateBtn.disabled = !isValid;
+			updateBtn.classList.toggle("opacity-50", !isValid);
+			updateBtn.classList.toggle("cursor-not-allowed", !isValid);
+		}
+
+		// Handle add button when in create mode
+		if (
+			!addBtn.classList.contains("hidden") &&
+			addBtn.textContent === "Create Lock"
+		) {
+			addBtn.disabled = !isValid;
+			addBtn.classList.toggle("opacity-50", !isValid);
+			addBtn.classList.toggle("cursor-not-allowed", !isValid);
+		}
+	}
+
+	// Method to trigger lock grid regeneration
+	triggerLockGridRegeneration() {
+		try {
+			// Try to communicate with parent window if this is embedded
+			if (window.parent && window.parent !== window) {
+				window.parent.postMessage(
+					{
+						type: "REGENERATE_LOCK_GRID",
+					},
+					"*"
+				);
+			}
+
+			// Also try localStorage as a fallback communication method
+			localStorage.setItem("lockGridRegenerate", Date.now().toString());
+
+			console.log("Triggered lock grid regeneration");
+		} catch (error) {
+			console.warn("Could not trigger lock grid regeneration:", error);
+		}
+	}
+
+	// Toast notifications
+	showToast(message, type = "success") {
+		const toast = document.createElement("div");
+		const bgColor = type === "error" ? "bg-red-500" : "bg-green-500";
+
+		toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0`;
+		toast.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"></path>
+                    </svg>
+                </button>
             </div>
-        `).join('');
-    }
+        `;
 
-    async handleLockSubmit(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const lockData = {
-            name: formData.get('name'),
-            date: formData.get('date'),
-            story: formData.get('story') === 'true'
-        };
+		const container = document.getElementById("toast-container");
+		container.appendChild(toast);
 
-        try {
-            const isEditing = this.currentEditingLock !== null;
-            const url = isEditing 
-                ? `${this.apiBase}/admin/locks/${this.currentEditingLock}`
-                : `${this.apiBase}/admin/locks`;
-            
-            const method = isEditing ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(lockData)
-            });
+		// Animate in
+		setTimeout(() => {
+			toast.classList.remove("translate-x-full", "opacity-0");
+		}, 100);
 
-            if (response.ok) {
-                this.showMessage('locks-message', 
-                    isEditing ? 'Lock updated successfully' : 'Lock created successfully');
-                await this.loadLocks();
-                await this.populateStoryLockSelect();
-                this.resetLockForm();
-            } else {
-                throw new Error('Failed to save lock');
-            }
-        } catch (error) {
-            console.error('Error saving lock:', error);
-            this.showMessage('locks-message', 'Failed to save lock', 'error');
-        }
-    }
-
-    async editLock(lockId) {
-        try {
-            const response = await fetch(`${this.apiBase}/lock?id=${lockId}`);
-            const data = await response.json();
-            const lock = data.lock;
-
-            document.getElementById('lock-name').value = lock.name;
-            document.getElementById('lock-date').value = lock.date;
-            document.getElementById('lock-story').value = lock.story.toString();
-            document.getElementById('lock-edit-id').value = lockId;
-            
-            this.currentEditingLock = lockId;
-            document.getElementById('cancel-lock-edit').classList.remove('hidden');
-            document.querySelector('#lock-form button[type="submit"]').textContent = 'Update Lock';
-        } catch (error) {
-            console.error('Error loading lock for edit:', error);
-            this.showMessage('locks-message', 'Failed to load lock for editing', 'error');
-        }
-    }
-
-    async deleteLock(lockId) {
-        if (!confirm('Are you sure you want to delete this lock? This will also delete any associated story.')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${this.apiBase}/admin/locks/${lockId}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                this.showMessage('locks-message', 'Lock deleted successfully');
-                await this.loadLocks();
-                await this.loadStories();
-                await this.populateStoryLockSelect();
-            } else {
-                throw new Error('Failed to delete lock');
-            }
-        } catch (error) {
-            console.error('Error deleting lock:', error);
-            this.showMessage('locks-message', 'Failed to delete lock', 'error');
-        }
-    }
-
-    cancelLockEdit() {
-        this.resetLockForm();
-    }
-
-    resetLockForm() {
-        document.getElementById('lock-form').reset();
-        document.getElementById('lock-edit-id').value = '';
-        this.currentEditingLock = null;
-        document.getElementById('cancel-lock-edit').classList.add('hidden');
-        document.querySelector('#lock-form button[type="submit"]').textContent = 'Add Lock';
-    }
-
-    // Stories Management
-    async loadStories() {
-        try {
-            const response = await fetch(`${this.apiBase}/stories`);
-            const data = await response.json();
-            this.renderStories(data.stories);
-        } catch (error) {
-            console.error('Failed to load stories:', error);
-            this.showMessage('stories-message', 'Failed to load stories', 'error');
-        }
-    }
-
-    renderStories(stories) {
-        const container = document.getElementById('stories-list');
-        
-        if (!stories || stories.length === 0) {
-            container.innerHTML = '<div class="loading">No stories found</div>';
-            return;
-        }
-
-        container.innerHTML = stories.map(story => `
-            <div class="story-item">
-                <div class="story-info">
-                    <strong>${story.title}</strong><br>
-                    <small>Lock: ${story.name} (${story.date}) | ID: ${story.lock_id}</small><br>
-                    <small>${story.body.substring(0, 100)}${story.body.length > 100 ? '...' : ''}</small>
-                    ${story.featured ? '<br><span style="color: #e74c3c;">⭐ Featured</span>' : ''}
-                </div>
-                <div class="story-actions">
-                    <button onclick="adminDashboard.editStory(${story.lock_id})">Edit</button>
-                    <button class="danger" onclick="adminDashboard.deleteStory(${story.lock_id})">Delete</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    async populateStoryLockSelect() {
-        try {
-            const response = await fetch(`${this.apiBase}/locks`);
-            const data = await response.json();
-            const storyLocks = data.locks.filter(lock => lock.story);
-            
-            const select = document.getElementById('story-lock-select');
-            select.innerHTML = '<option value="">Select a lock with story enabled</option>' +
-                storyLocks.map(lock => 
-                    `<option value="${lock.lock_id}">${lock.name} (${lock.date}) - ID: ${lock.lock_id}</option>`
-                ).join('');
-        } catch (error) {
-            console.error('Failed to populate story lock select:', error);
-        }
-    }
-
-    async handleStorySubmit(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const storyData = {
-            lock_id: parseInt(formData.get('lock_id')),
-            title: formData.get('title'),
-            body: formData.get('body'),
-            author: formData.get('author') || null,
-            featured: formData.get('featured') === 'true'
-        };
-
-        try {
-            const isEditing = this.currentEditingStory !== null;
-            const url = isEditing 
-                ? `${this.apiBase}/admin/stories/${this.currentEditingStory}`
-                : `${this.apiBase}/admin/stories`;
-            
-            const method = isEditing ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(storyData)
-            });
-
-            if (response.ok) {
-                this.showMessage('stories-message', 
-                    isEditing ? 'Story updated successfully' : 'Story created successfully');
-                await this.loadStories();
-                this.resetStoryForm();
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to save story');
-            }
-        } catch (error) {
-            console.error('Error saving story:', error);
-            this.showMessage('stories-message', error.message || 'Failed to save story', 'error');
-        }
-    }
-
-    async editStory(lockId) {
-        try {
-            const response = await fetch(`${this.apiBase}/lock?id=${lockId}`);
-            const data = await response.json();
-            const lock = data.lock;
-
-            if (lock.story_title) {
-                document.getElementById('story-lock-select').value = lockId;
-                document.getElementById('story-title').value = lock.story_title;
-                document.getElementById('story-body').value = lock.story_body || '';
-                document.getElementById('story-author').value = lock.story_author || '';
-                document.getElementById('story-featured').value = 'true'; // Default for existing stories
-                document.getElementById('story-edit-id').value = lockId;
-                
-                this.currentEditingStory = lockId;
-                document.getElementById('cancel-story-edit').classList.remove('hidden');
-                document.querySelector('#story-form button[type="submit"]').textContent = 'Update Story';
-                
-                // Disable lock selection when editing
-                document.getElementById('story-lock-select').disabled = true;
-            }
-        } catch (error) {
-            console.error('Error loading story for edit:', error);
-            this.showMessage('stories-message', 'Failed to load story for editing', 'error');
-        }
-    }
-
-    async deleteStory(lockId) {
-        if (!confirm('Are you sure you want to delete this story?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${this.apiBase}/admin/stories/${lockId}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                this.showMessage('stories-message', 'Story deleted successfully');
-                await this.loadStories();
-            } else {
-                throw new Error('Failed to delete story');
-            }
-        } catch (error) {
-            console.error('Error deleting story:', error);
-            this.showMessage('stories-message', 'Failed to delete story', 'error');
-        }
-    }
-
-    cancelStoryEdit() {
-        this.resetStoryForm();
-    }
-
-    resetStoryForm() {
-        document.getElementById('story-form').reset();
-        document.getElementById('story-edit-id').value = '';
-        this.currentEditingStory = null;
-        document.getElementById('cancel-story-edit').classList.add('hidden');
-        document.querySelector('#story-form button[type="submit"]').textContent = 'Add Story';
-        document.getElementById('story-lock-select').disabled = false;
-    }
+		// Auto remove after 5 seconds
+		setTimeout(() => {
+			toast.classList.add("translate-x-full", "opacity-0");
+			setTimeout(() => toast.remove(), 300);
+		}, 5000);
+	}
 }
 
-// Initialize the admin dashboard when the DOM is loaded
-const adminDashboard = new AdminDashboard();
+// Initialize the admin interface when the DOM is loaded
+const adminInterface = new AdminInterface();
 
 // Make it globally available for inline event handlers
-window.adminDashboard = adminDashboard;
+window.adminInterface = adminInterface;

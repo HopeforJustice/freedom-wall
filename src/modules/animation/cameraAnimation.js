@@ -481,8 +481,8 @@ export function getLockById(lockId) {
 					grandChild.isMesh &&
 					grandChild.geometry instanceof THREE.PlaneGeometry &&
 					grandChild.userData &&
-					grandChild.userData.lockId === lockId &&
 					grandChild.userData.lockInfo &&
+					grandChild.userData.lockInfo.id === lockId && // Use lockInfo.id instead of lockId
 					grandChild.userData.lockInfo.story === true
 			);
 			if (textPlane) {
@@ -697,7 +697,7 @@ export function createIntroAnimation(options = {}) {
 	const {
 		delay = 0,
 		duration = 2500,
-		targetLockIndex = null,
+		targetLockId = null, // Changed from targetLockIndex to targetLockId
 		distance = 8, // Default distance for intro animation
 	} = options;
 
@@ -707,9 +707,9 @@ export function createIntroAnimation(options = {}) {
 
 		let targetLock;
 
-		if (targetLockIndex !== null) {
-			console.log(`Trying to get lock by index: ${targetLockIndex}`);
-			targetLock = getLockByIndex(targetLockIndex);
+		if (targetLockId !== null) {
+			console.log(`Trying to get lock by ID: ${targetLockId}`);
+			targetLock = getLockById(targetLockId);
 		} else {
 			console.log("Trying to get random lock with story...");
 			targetLock = getRandomLockWithStory();
