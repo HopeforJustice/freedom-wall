@@ -1,19 +1,17 @@
 import { resolve } from "path";
 import { fileURLToPath } from "url";
-import { existsSync } from "fs";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-export default ({ mode }) => {
-	const isProduction = mode === "production";
-	const adminExists = existsSync(resolve(__dirname, "src/admin/index.html"));
-
-	const input = { main: resolve(__dirname, "src/index.html") };
-
-	// Only add admin if it exists and we're not in production
-	if (!isProduction && adminExists) {
-		input.admin = resolve(__dirname, "src/admin/index.html");
-	}
+export default ({ command, mode }) => {
+	// For production builds, only include main entry point
+	const input =
+		process.env.NODE_ENV === "production" || mode === "production"
+			? { main: resolve(__dirname, "src/index.html") }
+			: {
+					main: resolve(__dirname, "src/index.html"),
+					admin: resolve(__dirname, "src/admin/index.html"),
+			  };
 
 	return {
 		root: "src/",

@@ -16,6 +16,5 @@
 			"status": 404
 		}
 	],
-	"outputDirectory": "dist",
-	"ignoreCommand": "npx vite build --mode production"
+	"outputDirectory": "dist"
 }
