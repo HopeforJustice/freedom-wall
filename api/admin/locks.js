@@ -1,14 +1,26 @@
 import { neon } from "@neondatabase/serverless";
 
-// Simple auth check - in production you'd verify JWT tokens from Stack Auth
-function isAuthenticated(req) {
-	// For development, allow access without strict auth
-	// In production, uncomment the lines below for proper auth
-	return true;
+// Check if request is from localhost only
+function isLocalhostRequest(req) {
+	const forwardedFor = req.headers["x-forwarded-for"];
+	const remoteAddress =
+		req.connection?.remoteAddress || req.socket?.remoteAddress;
+	const host = req.headers.host;
 
-	// Production auth check:
-	// const authHeader = req.headers?.authorization;
-	// return authHeader && authHeader.startsWith('Bearer ');
+	// Check if running locally (development)
+	const isLocalhost =
+		host &&
+		(host.startsWith("localhost") ||
+			host.startsWith("127.0.0.1") ||
+			host.startsWith("0.0.0.0"));
+
+	// In development, allow localhost
+	if (process.env.NODE_ENV !== "production" || isLocalhost) {
+		return true;
+	}
+
+	// In production, deny access to admin endpoints
+	return false;
 }
 
 export default async function handler(req, res) {
@@ -24,9 +36,13 @@ export default async function handler(req, res) {
 		return res.status(200).end();
 	}
 
-	// Check authentication
-	if (!isAuthenticated(req)) {
-		return res.status(401).json({ error: "Unauthorized" });
+	// Check if request is from localhost
+	if (!isLocalhostRequest(req)) {
+		return res.status(403).json({
+			error: "Admin functionality is only available when running locally",
+			message:
+				"Access denied: Admin endpoints are restricted to localhost for security.",
+		});
 	}
 
 	const sql = neon(process.env.DATABASE_URL);

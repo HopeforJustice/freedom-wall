@@ -12,39 +12,13 @@ class AdminInterface {
 		this.locks = [];
 		this.filteredLocks = [];
 		this.selectedLock = null;
-		this.isAuthenticated = false;
 
 		this.init();
 	}
 
 	async init() {
-		await this.checkAuth();
-		if (this.isAuthenticated) {
-			this.initializeEventListeners();
-			await this.loadLocks();
-		}
-	}
-
-	async checkAuth() {
-		try {
-			// For now, we'll use a simple check - in production, integrate with Stack Auth
-			// TODO: Implement proper Stack Auth integration
-			const authStatus = document.getElementById("auth-status");
-
-			// Temporary: Allow access for development
-			this.isAuthenticated = true;
-			authStatus.innerHTML = `
-                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span class="text-secondary-700">✓ Authenticated as Admin (Development Mode)</span>
-            `;
-		} catch (error) {
-			console.error("Auth check failed:", error);
-			const authStatus = document.getElementById("auth-status");
-			authStatus.innerHTML = `
-                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span class="text-red-700">❌ Authentication failed - Please ensure you have admin privileges</span>
-            `;
-		}
+		this.initializeEventListeners();
+		await this.loadLocks();
 	}
 
 	initializeEventListeners() {

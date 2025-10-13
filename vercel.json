@@ -1,1 +1,38 @@
-{}
+{
+	"functions": {
+		"api/**/*.js": {
+			"excludeFiles": ["api/admin/**", "api/setup-db.js", "api/seed-db.js"]
+		}
+	},
+	"build": {
+		"env": {
+			"NODE_ENV": "production"
+		}
+	},
+	"routes": [
+		{
+			"src": "/admin/(.*)",
+			"status": 404
+		},
+		{
+			"src": "/api/setup-db",
+			"status": 404
+		},
+		{
+			"src": "/api/seed-db",
+			"status": 404
+		},
+		{
+			"src": "/api/stories",
+			"methods": ["POST", "PUT", "DELETE"],
+			"status": 404
+		},
+		{
+			"src": "/api/stories/(.*)",
+			"methods": ["POST", "PUT", "DELETE"],
+			"status": 404
+		}
+	],
+	"outputDirectory": "dist",
+	"ignoreCommand": "npx vite build --mode production"
+}
