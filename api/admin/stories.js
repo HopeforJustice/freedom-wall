@@ -1,16 +1,5 @@
 import { neon } from "@neondatabase/serverless";
 
-// Simple auth check - in production you'd verify JWT tokens from Stack Auth
-function isAuthenticated(req) {
-	// For development, allow access without strict auth
-	// In production, uncomment the lines below for proper auth
-	return true;
-
-	// Production auth check:
-	// const authHeader = req.headers?.authorization;
-	// return authHeader && authHeader.startsWith('Bearer ');
-}
-
 export default async function handler(req, res) {
 	// Set CORS headers
 	res.setHeader("Access-Control-Allow-Origin", "*");
@@ -22,11 +11,6 @@ export default async function handler(req, res) {
 
 	if (req.method === "OPTIONS") {
 		return res.status(200).end();
-	}
-
-	// Check authentication
-	if (!isAuthenticated(req)) {
-		return res.status(401).json({ error: "Unauthorized" });
 	}
 
 	const sql = neon(process.env.DATABASE_URL);
@@ -141,12 +125,10 @@ export default async function handler(req, res) {
           WHERE lock_id = ${parseInt(deleteLockId)}
         `;
 
-				return res
-					.status(200)
-					.json({
-						message: "Story deleted successfully",
-						story: deletedStory[0],
-					});
+				return res.status(200).json({
+					message: "Story deleted successfully",
+					story: deletedStory[0],
+				});
 
 			default:
 				return res.status(405).json({ error: "Method not allowed" });

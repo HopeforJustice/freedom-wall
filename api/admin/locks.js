@@ -1,28 +1,5 @@
 import { neon } from "@neondatabase/serverless";
 
-// Check if request is from localhost only
-function isLocalhostRequest(req) {
-	const forwardedFor = req.headers["x-forwarded-for"];
-	const remoteAddress =
-		req.connection?.remoteAddress || req.socket?.remoteAddress;
-	const host = req.headers.host;
-
-	// Check if running locally (development)
-	const isLocalhost =
-		host &&
-		(host.startsWith("localhost") ||
-			host.startsWith("127.0.0.1") ||
-			host.startsWith("0.0.0.0"));
-
-	// In development, allow localhost
-	if (process.env.NODE_ENV !== "production" || isLocalhost) {
-		return true;
-	}
-
-	// In production, deny access to admin endpoints
-	return false;
-}
-
 export default async function handler(req, res) {
 	// Set CORS headers
 	res.setHeader("Access-Control-Allow-Origin", "*");
@@ -34,15 +11,6 @@ export default async function handler(req, res) {
 
 	if (req.method === "OPTIONS") {
 		return res.status(200).end();
-	}
-
-	// Check if request is from localhost
-	if (!isLocalhostRequest(req)) {
-		return res.status(403).json({
-			error: "Admin functionality is only available when running locally",
-			message:
-				"Access denied: Admin endpoints are restricted to localhost for security.",
-		});
 	}
 
 	const sql = neon(process.env.DATABASE_URL);
