@@ -1,6 +1,7 @@
-# Digital Freedom Wall
+# Digital Freedom Wall V1.0
 
 ## Setup
+
 Download [Node.js](https://nodejs.org/en/download/).
 Run this followed commands:
 
