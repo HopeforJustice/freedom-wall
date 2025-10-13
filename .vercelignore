@@ -1,0 +1,5 @@
+# Exclude admin functionality from production deployment
+api/admin/
+api/setup-db.js
+api/seed-db.js
+src/admin/
