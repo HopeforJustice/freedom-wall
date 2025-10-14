@@ -516,7 +516,7 @@ export function handleUrlParameters() {
 				if (targetLock) {
 					console.log(`Animating to lock with ID ${parsedLockId} (has story)`);
 					animateCameraToLock(targetLock.position, {
-						duration: 2500,
+						duration: 2000,
 						distance: 20,
 					});
 				} else {
@@ -526,12 +526,12 @@ export function handleUrlParameters() {
 					const randomLock = getRandomLockWithStory();
 					if (randomLock) {
 						animateCameraToLock(randomLock.position, {
-							duration: 2500,
+							duration: 2000,
 							distance: 20,
 						});
 					}
 				}
-			}, 2000); // Give time for the scene to load
+			}, 200); // Give time for the scene to load
 		} else {
 			console.warn(`Invalid lockId parameter: ${lockId}`);
 		}
@@ -696,7 +696,7 @@ export function stopCameraAnimation() {
 export function createIntroAnimation(options = {}) {
 	const {
 		delay = 0,
-		duration = 2500,
+		duration = 200,
 		targetLockId = null, // Changed from targetLockIndex to targetLockId
 		distance = 8, // Default distance for intro animation
 	} = options;

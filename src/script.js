@@ -73,8 +73,8 @@ loadLockModels().then(() => {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (!urlParams.has("lockId")) {
 		createIntroAnimation({
-			delay: 10, // Small delay to ensure everything is rendered
-			duration: 2500,
+			delay: 0, // Small delay to ensure everything is rendered
+			duration: 200,
 			distance: 20, // Distance from the wall
 			targetLockId: null, // null for random lock, or specify lock ID like 253
 		});
@@ -100,14 +100,14 @@ if (findNewStoryBtn) {
 
 			findNewStory({
 				zoomOutDistance: 50,
-				duration: 1500,
+				duration: 1000,
 			});
 
 			// Re-enable button after animation completes (total time = 2 phases * 1500ms each)
 			setTimeout(() => {
 				findNewStoryBtn.disabled = false;
 				findNewStoryBtn.textContent = "Find New Story";
-			}, 3000);
+			}, 2000);
 		}
 	});
 }
