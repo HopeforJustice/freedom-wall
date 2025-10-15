@@ -1,3 +1,75 @@
+/* Apercu Pro Regular */
+@font-face {
+    font-family: 'Apercu Pro';
+    src: url('/fonts/apercu-regular-pro.woff2') format('woff2'),
+             url('/fonts/apercu-regular-pro.woff') format('woff'),
+             url('/fonts/apercu-regular-pro.ttf') format('truetype'),
+             url('/fonts/apercu-regular-pro.eot') format('embedded-opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apercu Pro Bold */
+@font-face {
+    font-family: 'Apercu Pro';
+    src: url('/fonts/apercu-bold-pro.woff2') format('woff2'),
+             url('/fonts/apercu-bold-pro.woff') format('woff'),
+             url('/fonts/apercu-bold-pro.ttf') format('truetype'),
+             url('/fonts/apercu-bold-pro.eot') format('embedded-opentype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apercu Pro Italic */
+@font-face {
+    font-family: 'Apercu Pro';
+    src: url('/fonts/apercu-italic-pro.woff2') format('woff2'),
+             url('/fonts/apercu-italic-pro.woff') format('woff'),
+             url('/fonts/apercu-italic-pro.ttf') format('truetype'),
+             url('/fonts/apercu-italic-pro.eot') format('embedded-opentype');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* ApercuPro-Regular (alt) */
+@font-face {
+    font-family: 'Apercu Pro';
+    src: url('/fonts/ApercuPro-Regular.woff2') format('woff2'),
+             url('/fonts/ApercuPro-Regular.woff') format('woff'),
+             url('/fonts/ApercuPro-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Canela Medium */
+@font-face {
+    font-family: 'Canela Medium';
+    src: url('/fonts/Canela-Medium.woff2') format('woff2'),
+             url('/fonts/Canela-Medium.woff') format('woff'),
+             url('/fonts/Canela-Medium.ttf') format('truetype'),
+             url('/fonts/Canela-Medium.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* FKScreamerLegacy-Upright */
+@font-face {
+    font-family: 'FKScreamerLegacy Upright';
+    src: url('/fonts/FKScreamerLegacy-Upright.woff2') format('woff2'),
+             url('/fonts/FKScreamerLegacy-Upright.woff') format('woff'),
+             url('/fonts/FKScreamerLegacy-Upright.ttf') format('truetype'),
+             url('/fonts/FKScreamerLegacy-Upright.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+
 /* Custom Font Declarations */
 
 @font-face {
@@ -13,10 +85,10 @@
     src: url('/fonts/handy.otf') format('opentype');
     font-weight: bold;
     font-style: normal;
-    font-display: swap;
+    font-display: swap; /* Improves loading performance */
 }
 
 /* Preload the font to ensure it's available when canvas tries to use it */
-body {
+/* body {
     font-family: 'HandyFont', Arial, sans-serif;
-}
+} */

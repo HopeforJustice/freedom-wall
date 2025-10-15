@@ -96,17 +96,15 @@ if (findNewStoryBtn) {
 		if (!isCameraAnimating()) {
 			// Disable button during animation
 			findNewStoryBtn.disabled = true;
-			findNewStoryBtn.textContent = "Finding Story...";
 
 			findNewStory({
 				zoomOutDistance: 50,
-				duration: 3000,
+				duration: 2000,
 			});
 
 			// Re-enable button after animation completes (total time = 2 phases * 1500ms each)
 			setTimeout(() => {
 				findNewStoryBtn.disabled = false;
-				findNewStoryBtn.textContent = "Find New Story";
 			}, 1500);
 		}
 	});
