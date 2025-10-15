@@ -100,14 +100,14 @@ if (findNewStoryBtn) {
 
 			findNewStory({
 				zoomOutDistance: 50,
-				duration: 1000,
+				duration: 3000,
 			});
 
 			// Re-enable button after animation completes (total time = 2 phases * 1500ms each)
 			setTimeout(() => {
 				findNewStoryBtn.disabled = false;
 				findNewStoryBtn.textContent = "Find New Story";
-			}, 2000);
+			}, 1500);
 		}
 	});
 }
