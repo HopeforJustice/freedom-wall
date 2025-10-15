@@ -5,7 +5,8 @@
  */
 import * as THREE from "three";
 import { canvas, camera, scene } from "../index.js";
-import { setButtonHover, handleZoom } from "../animation/cameraAnimation.js";
+import { setButtonHover } from "../animation/buttonAnimation.js";
+import { handleZoom } from "../camera/cameraControls.js";
 
 // Raycaster for 3D object interaction
 const raycaster = new THREE.Raycaster();
@@ -243,19 +244,19 @@ async function showLockStory(lockInfo) {
 	}
 }
 
-export const createCanvasEvents = (wallControls) => {
+export const createCanvasEvents = (cameraMovement) => {
 	// Camera control event listeners
 	canvas.addEventListener("mousedown", (event) =>
-		wallControls.onMouseDown(event)
+		cameraMovement.onMouseDown(event)
 	);
 	canvas.addEventListener("mousemove", (event) => {
 		// Handle wall controls
-		wallControls.onMouseMove(event);
+		cameraMovement.onMouseMove(event);
 		// Handle hover detection
 		handleCanvasMouseMove(event);
 	});
-	canvas.addEventListener("mouseup", () => wallControls.onMouseUp());
-	canvas.addEventListener("mouseleave", () => wallControls.onMouseUp());
+	canvas.addEventListener("mouseup", () => cameraMovement.onMouseUp());
+	canvas.addEventListener("mouseleave", () => cameraMovement.onMouseUp());
 
 	// Click event listener for 3D object interaction
 	canvas.addEventListener("click", handleCanvasClick);
@@ -267,31 +268,31 @@ export const createCanvasEvents = (wallControls) => {
 	canvas.addEventListener("touchstart", (event) => {
 		// Handle button interaction and pinch zoom
 		handleTouchStart(event);
-		// Only pass single touches to wall controls
+		// Only pass single touches to camera movement
 		if (event.touches.length === 1) {
-			wallControls.onTouchStart(event);
+			cameraMovement.onTouchStart(event);
 		}
 	});
 	canvas.addEventListener("touchmove", (event) => {
 		// Handle pinch zoom and tap detection
 		handleTouchMove(event);
-		// Only pass single touches to wall controls
+		// Only pass single touches to camera movement
 		if (event.touches.length === 1 && touchState.isFirstTouch === false) {
-			wallControls.onTouchMove(event);
+			cameraMovement.onTouchMove(event);
 		}
 	});
 	canvas.addEventListener("touchend", (event) => {
 		// Handle tap detection
 		handleTouchEnd(event);
-		// Always pass to wall controls
-		wallControls.onTouchEnd(event);
+		// Always pass to camera movement
+		cameraMovement.onTouchEnd(event);
 	});
 	canvas.addEventListener("touchcancel", (event) => {
 		// Reset touch state
 		touchState.isFirstTouch = false;
 		touchState.lastTouchDistance = 0;
-		// Pass to wall controls
-		wallControls.onTouchEnd(event);
+		// Pass to camera movement
+		cameraMovement.onTouchEnd(event);
 	});
 
 	// Prevent context menu on right click

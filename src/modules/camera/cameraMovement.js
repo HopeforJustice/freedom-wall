@@ -1,9 +1,9 @@
 import * as THREE from "three";
-import { camera } from "../camera/camera.js";
+import { camera } from "./camera.js";
 import { isCameraAnimating } from "../animation/cameraAnimation.js";
 
-// Custom wall-view controls
-export const wallControls = {
+// Camera movement controls for panning around the wall
+export const cameraMovement = {
 	mouseX: 0,
 	mouseY: 0,
 	isMouseDown: false,

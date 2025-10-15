@@ -4,7 +4,7 @@ import { waitForFontLoad } from "./text/text";
 import { createLockTextTexture } from "./text/text";
 import { createTextTexture } from "./text/text";
 import { textPlanes } from "./text/text";
-import { wallControls } from "./wall/wallControls";
+import { cameraMovement } from "./camera/cameraMovement";
 import { camera } from "./camera/camera";
 import { gui } from "./globals/globals";
 import { canvas } from "./globals/globals";
@@ -25,15 +25,17 @@ import {
 	createIntroAnimation,
 	isCameraAnimating,
 	stopCameraAnimation,
+	handleUrlParameters,
+	findNewStory,
+} from "./animation/cameraAnimation";
+import { removeAllStoryButtons } from "./animation/buttonAnimation";
+import {
 	getRandomLock,
 	getRandomLockWithStory,
 	getLockByIndex,
 	getLockById,
-	handleUrlParameters,
-	removeAllStoryButtons,
-	findNewStory,
-	handleZoom,
-} from "./animation/cameraAnimation";
+} from "./locks/lockUtils";
+import { handleZoom } from "./camera/cameraControls";
 
 export {
 	textSettings,
@@ -42,7 +44,7 @@ export {
 	createLockTextTexture,
 	createTextTexture,
 	textPlanes,
-	wallControls,
+	cameraMovement,
 	camera,
 	gui,
 	canvas,

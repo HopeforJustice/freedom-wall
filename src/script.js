@@ -1,5 +1,5 @@
 import {
-	wallControls,
+	cameraMovement,
 	camera,
 	gui,
 	canvas,
@@ -40,7 +40,7 @@ window.addEventListener("resize", () => {
 // GUI controls
 const cameraFolder = gui.addFolder("Camera Controls");
 cameraFolder
-	.add(wallControls, "sensitivity", 0.001, 0.05, 0.001)
+	.add(cameraMovement, "sensitivity", 0.001, 0.05, 0.001)
 	.name("Mouse Sensitivity");
 gui.hide(); // Hide the GUI by default
 
@@ -82,12 +82,12 @@ loadLockModels().then(() => {
 });
 
 // Initialize wall controls
-wallControls.basePosition = camera.position.clone();
-wallControls.baseRotation = camera.rotation.clone();
-wallControls.init();
+cameraMovement.basePosition = camera.position.clone();
+cameraMovement.baseRotation = camera.rotation.clone();
+cameraMovement.init();
 
-// Setup canvas event listeners for camera controls
-createCanvasEvents(wallControls);
+// Set up canvas events
+createCanvasEvents(cameraMovement);
 
 // Setup Find New Story button
 const findNewStoryBtn = document.getElementById("findNewStoryBtn");

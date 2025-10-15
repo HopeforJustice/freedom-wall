@@ -12,7 +12,7 @@ import {
 	textPlanes,
 	createLockTextTexture,
 } from "../index.js";
-import { createStoryButton } from "../animation/cameraAnimation.js";
+import { createStoryButton } from "../animation/buttonAnimation.js";
 import { lockDataAPI } from "./lockDataAPI.js";
 
 // Array to store loaded lock models
