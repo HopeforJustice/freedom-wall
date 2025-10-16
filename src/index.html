@@ -56,9 +56,13 @@
 		<!-- story modal -->
 		<div
 			id="storyModal"
-			class="bg-[#fafafa] max-w-5xl fixed top-28 rounded-2xl w-full h-full left-1/2 -translate-x-1/2 hidden"
+			class="bg-[#fafafa] max-w-5xl fixed top-28 rounded-2xl w-full h-full left-1/2 -translate-x-1/2 hidden transition-all"
 		>
-			<div id="storyText"></div>
+			<div class="p-6" id="storyContent">
+				<div class="w-full h-24" id="storyImage">Story Image</div>
+				<h2 id="storyTitle"></h2>
+				<p id="storyText"></p>
+			</div>
 			<button id="closeStory">close</button>
 		</div>
 

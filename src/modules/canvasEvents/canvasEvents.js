@@ -214,23 +214,22 @@ async function showLockStory(lockInfo) {
 
 		if (result.success && result.data) {
 			const story = result.data;
-
-			// Create a formatted alert with the story content
-			const alertMessage = [
-				`Story for ${lockInfo.name}`,
-				``,
-				`Date: ${lockInfo.date}`,
-				`ID: ${lockInfo.id}`,
-				``,
-				story.title ? `Title: ${story.title}` : "",
-				``,
-				`Story:`,
-				story.content || "[No story content available]",
-			]
-				.filter((line) => line !== "")
-				.join("\n");
-
-			alert(alertMessage);
+			const storyModal = document.getElementById("storyModal");
+			const storyText = document.getElementById("storyText");
+			const closeStoryBtn = document.getElementById("closeStory");
+			const storyTitle = document.getElementById("storyTitle");
+			//show the modal
+			closeStoryBtn.onclick = () => {
+				storyModal.classList.add("hidden", "opacity-0");
+			};
+			window.onclick = (event) => {
+				if (!storyModal.contains(event.target)) {
+					storyModal.classList.add("hidden", "opacity-0");
+				}
+			};
+			storyModal.classList.remove("hidden", "opacity-0");
+			storyTitle.textContent = story.title || "Untitled Story";
+			storyText.textContent = story.content || "No content available.";
 		} else {
 			alert(
 				`Story for ${lockInfo.name}\n\nNo story content available for this lock.`

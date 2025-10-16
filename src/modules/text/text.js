@@ -156,12 +156,24 @@ export async function createLockTextTexture(lockInfo, config = textConfig) {
 	context.font = `bold ${finalFontSize}px ${fontToUse}`;
 	context.textAlign = "center";
 	context.textBaseline = "middle";
-	context.fillText(lockInfo.name, centerX, centerY - textConfig.lineSpacing);
+	if (lockInfo.story) {
+		context.fillText(
+			`${lockInfo.name}'S`,
+			centerX,
+			centerY - textConfig.lineSpacing
+		);
+	} else {
+		context.fillText(lockInfo.name, centerX, centerY - textConfig.lineSpacing);
+	}
 
 	// Draw date (smaller, bottom line) - proportional to name font size
 	context.fillStyle = config.dateColor;
 	context.font = `${dateFontSize}px ${fontToUse}`;
-	context.fillText(lockInfo.date, centerX, centerY + textConfig.lineSpacing);
+	if (lockInfo.story) {
+		context.fillText("STORY", centerX, centerY + textConfig.lineSpacing);
+	} else {
+		context.fillText(lockInfo.date, centerX, centerY + textConfig.lineSpacing);
+	}
 
 	// Create texture
 	const texture = new THREE.CanvasTexture(canvas);

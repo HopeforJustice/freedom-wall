@@ -59,7 +59,7 @@ export function createStoryButton(lockObject) {
 	const tempContext = tempCanvas.getContext("2d");
 	// Set font first to measure text
 	tempContext.font = "bold 32px 'Segoe UI', Arial, sans-serif";
-	const buttonText = `See ${toTitleCase(lockInfo.name)}'s Story`; // Measure text to determine canvas size
+	const buttonText = `See Story`; // Measure text to determine canvas size
 	const textMetrics = tempContext.measureText(buttonText);
 	const textWidth = textMetrics.width;
 	const textHeight = 32; // Font size
