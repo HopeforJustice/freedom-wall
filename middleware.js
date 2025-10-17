@@ -10,10 +10,12 @@ export function middleware(request) {
 
 	const country = existingCountry || headerCountry;
 	const city = existingCity || headerCity;
+	const response = new Response("OK");
 
 	if (ip) {
 		response.cookies.set("user-ip", ip, { path: "/" });
 		response.cookies.set("user-country", country, { path: "/" });
 		response.cookies.set("user-city", city, { path: "/" });
 	}
+	return response;
 }
