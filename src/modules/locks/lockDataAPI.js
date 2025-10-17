@@ -18,23 +18,42 @@ class LockDataAPI {
 			if (this.allLocks) {
 				return this.allLocks;
 			}
-			const response = await fetch(`${API_BASE}/lock`);
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			const data = await response.json();
 
-			const locks = data.map((lock) => ({
-				id: lock.id,
-				name: lock.title.rendered,
-				date: lock.acf.lock_date,
-				story: lock.acf.show_lock_story,
-			}));
-			this.allLocks = locks;
+			const perPage = 100;
+			let page = 1;
+			let allLocks = [];
+			let totalPages = 1;
 
-			return locks;
+			do {
+				const response = await fetch(
+					`${API_BASE}/lock?per_page=${perPage}&page=${page}`
+				);
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				const data = await response.json();
+
+				// Map and add to allLocks
+				const locks = data.map((lock) => ({
+					id: lock.id,
+					name: lock.title.rendered,
+					date: lock.acf?.lock_date,
+					story: lock.acf?.show_lock_story,
+				}));
+				allLocks = allLocks.concat(locks);
+
+				// Get total pages from header
+				const totalPagesHeader = response.headers.get("X-WP-TotalPages");
+				totalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : page;
+
+				page++;
+			} while (page <= totalPages);
+
+			this.allLocks = allLocks;
+			return allLocks;
 		} catch (error) {
 			console.error("Failed to fetch locks:", error);
+			return [];
 		}
 	}
 
