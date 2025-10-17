@@ -62,7 +62,7 @@ loadLockModels().then(() => {
 		// Remove from DOM after fade animation
 		setTimeout(() => {
 			loadingCircle.classList.add("fade-out");
-		}, 1000);
+		}, 10);
 	}
 
 	// Check for URL parameters first
@@ -73,7 +73,7 @@ loadLockModels().then(() => {
 	if (!urlParams.has("lockId")) {
 		createIntroAnimation({
 			delay: 0, // Small delay to ensure everything is rendered
-			duration: 200,
+			duration: 1000,
 			distance: 20, // Distance from the wall
 			targetLockId: null, // null for random lock, or specify lock ID like 253
 		});
