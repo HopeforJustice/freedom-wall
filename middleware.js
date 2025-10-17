@@ -11,11 +11,13 @@ export function middleware(request) {
 	const country = existingCountry || headerCountry;
 	const city = existingCity || headerCity;
 	const response = new Response("OK");
+	console.log("Middleware executed for IP:", ip);
 
 	if (ip) {
 		response.cookies.set("user-ip", ip, { path: "/" });
 		response.cookies.set("user-country", country, { path: "/" });
 		response.cookies.set("user-city", city, { path: "/" });
+		console.log("Set cookies - IP:", ip, "Country:", country, "City:", city);
 	}
 	return response;
 }
