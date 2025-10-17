@@ -73,3 +73,4 @@ export {
 	findNewStory,
 	handleZoom,
 };
+export let storyModalVisible = false;

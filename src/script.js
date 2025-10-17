@@ -59,11 +59,10 @@ loadLockModels().then(() => {
 	// Hide loading circle when ready
 	const loadingCircle = document.getElementById("loadingCircle");
 	if (loadingCircle) {
-		loadingCircle.classList.add("fade-out");
 		// Remove from DOM after fade animation
 		setTimeout(() => {
-			loadingCircle.remove();
-		}, 10);
+			loadingCircle.classList.add("fade-out");
+		}, 1000);
 	}
 
 	// Check for URL parameters first

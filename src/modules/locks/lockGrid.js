@@ -110,7 +110,7 @@ function getRandomLockModel() {
 async function generateLockGrid() {
 	// Fetch lock data from API
 	console.log("Fetching lock data from database...");
-	const lockData = await lockDataAPI.getLockData();
+	const lockData = await lockDataAPI.getAllLocks();
 	console.log(`Loaded ${lockData.length} locks from database`);
 
 	// Calculate grid dimensions based on actual number of locks

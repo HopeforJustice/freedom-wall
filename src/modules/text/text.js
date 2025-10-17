@@ -151,6 +151,8 @@ export async function createLockTextTexture(lockInfo, config = textConfig) {
 	const centerX = canvas.width / 2;
 	const centerY = canvas.height / 2;
 
+	const uppercaseName = lockInfo.name.toUpperCase();
+
 	// Draw name (larger, top line) - use dynamic font size
 	context.fillStyle = config.nameColor;
 	context.font = `bold ${finalFontSize}px ${fontToUse}`;
@@ -158,12 +160,12 @@ export async function createLockTextTexture(lockInfo, config = textConfig) {
 	context.textBaseline = "middle";
 	if (lockInfo.story) {
 		context.fillText(
-			`${lockInfo.name}'S`,
+			`${uppercaseName}'S`,
 			centerX,
 			centerY - textConfig.lineSpacing
 		);
 	} else {
-		context.fillText(lockInfo.name, centerX, centerY - textConfig.lineSpacing);
+		context.fillText(uppercaseName, centerX, centerY - textConfig.lineSpacing);
 	}
 
 	// Draw date (smaller, bottom line) - proportional to name font size

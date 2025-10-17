@@ -3,102 +3,59 @@
 
 // Determine API base URL based on environment
 const getApiBase = () => {
-	if (typeof window === "undefined") return ""; // Server-side
-
-	if (window.location.hostname === "localhost") {
-		// Local development - use separate API server
-		return "http://localhost:3001/api";
-	} else {
-		// Production - use Vercel serverless functions
-		return "/api";
-	}
+	return "https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2";
 };
 
 const API_BASE = getApiBase();
 
 class LockDataAPI {
 	constructor() {
-		this.cache = new Map();
-		this.allLocksCache = null;
-		this.storiesCache = null;
-		this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
-		this.lastFetch = null;
+		this.allLocks = null;
 	}
-
-	// Check if cache is still valid
-	isCacheValid() {
-		return this.lastFetch && Date.now() - this.lastFetch < this.cacheExpiry;
-	}
-
-	// Fetch all locks (with caching and expiry)
+	// Fetch all locks
 	async getAllLocks() {
-		if (this.allLocksCache && this.isCacheValid()) {
-			return this.allLocksCache;
-		}
-
 		try {
-			const response = await fetch(`${API_BASE}/locks`);
+			if (this.allLocks) {
+				return this.allLocks;
+			}
+			const response = await fetch(`${API_BASE}/lock`);
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}
 			const data = await response.json();
-			this.allLocksCache = data.locks;
-			this.lastFetch = Date.now();
 
-			// Pre-populate individual lock cache
-			data.locks.forEach((lock) => {
-				this.cache.set(lock.lock_id, {
-					id: lock.lock_id,
-					name: lock.name,
-					date: lock.date,
-					story: lock.story,
-					position: {
-						x: lock.position_x,
-						y: lock.position_y,
-						z: lock.position_z,
-					},
-				});
-			});
+			const locks = data.map((lock) => ({
+				id: lock.id,
+				name: lock.title.rendered,
+				date: lock.acf.lock_date,
+				story: lock.acf.show_lock_story,
+			}));
+			this.allLocks = locks;
 
-			return this.allLocksCache;
+			return locks;
 		} catch (error) {
 			console.error("Failed to fetch locks:", error);
-			// Return cached data if available, even if expired
-			return this.allLocksCache || [];
 		}
 	}
 
 	// Fetch a specific lock by ID
 	async getLock(id) {
-		if (this.cache.has(id)) {
-			return this.cache.get(id);
-		}
-
 		try {
-			const response = await fetch(`${API_BASE}/lock?id=${id}`);
+			const response = await fetch(`${API_BASE}/lock/${id}`);
+			console.log(`response for lock ${id}:`, response);
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}
-			const data = await response.json();
-			const lock = data.lock;
+			const lock = await response.json();
 
 			// Convert to the format expected by the frontend
 			const formattedLock = {
-				id: lock.lock_id,
-				name: lock.name,
-				date: lock.date,
-				story: lock.story,
-				storyTitle: lock.story_title,
-				storyBody: lock.story_body,
-				storyAuthor: lock.story_author,
-				position: {
-					x: lock.position_x,
-					y: lock.position_y,
-					z: lock.position_z,
-				},
+				id: lock.id,
+				name: lock.title.rendered,
+				date: lock.acf.lock_date,
+				content: lock.content.rendered,
 			};
 
-			this.cache.set(id, formattedLock);
 			return formattedLock;
 		} catch (error) {
 			console.error(`Failed to fetch lock ${id}:`, error);
@@ -106,72 +63,71 @@ class LockDataAPI {
 		}
 	}
 
-	// Fetch all story locks
-	async getStories() {
-		if (this.storiesCache) {
-			return this.storiesCache;
-		}
+	// // Fetch all story locks
+	// async getStories() {
+	// 	if (this.storiesCache) {
+	// 		return this.storiesCache;
+	// 	}
 
-		try {
-			const response = await fetch(`${API_BASE}/stories`);
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			const data = await response.json();
+	// 	try {
+	// 		const response = await fetch(`${API_BASE}/stories`);
+	// 		if (!response.ok) {
+	// 			throw new Error(`HTTP error! status: ${response.status}`);
+	// 		}
+	// 		const data = await response.json();
 
-			// Convert to frontend format
-			this.storiesCache = data.stories.map((story) => ({
-				id: story.lock_id,
-				name: story.name,
-				date: story.date,
-				story: true,
-				storyTitle: story.title,
-				storyBody: story.body,
-				storyAuthor: story.author,
-				featured: story.featured,
-				position: {
-					x: story.position_x,
-					y: story.position_y,
-					z: story.position_z,
-				},
-			}));
+	// 		// Convert to frontend format
+	// 		this.storiesCache = data.stories.map((story) => ({
+	// 			id: story.lock_id,
+	// 			name: story.name,
+	// 			date: story.date,
+	// 			story: true,
+	// 			storyTitle: story.title,
+	// 			storyBody: story.body,
+	// 			storyAuthor: story.author,
+	// 			featured: story.featured,
+	// 			position: {
+	// 				x: story.position_x,
+	// 				y: story.position_y,
+	// 				z: story.position_z,
+	// 			},
+	// 		}));
 
-			return this.storiesCache;
-		} catch (error) {
-			console.error("Failed to fetch stories:", error);
-			return [];
-		}
-	}
+	// 		return this.storiesCache;
+	// 	} catch (error) {
+	// 		console.error("Failed to fetch stories:", error);
+	// 		return [];
+	// 	}
+	// }
 
-	// Get locks in the old array format for compatibility
-	async getLockData() {
-		const locks = await this.getAllLocks();
-		return locks.map((lock) => ({
-			id: lock.lock_id,
-			name: lock.name,
-			date: lock.date,
-			story: lock.story,
-		}));
-	}
+	// // Get locks in the old array format for compatibility
+	// async getLockData() {
+	// 	const locks = await this.getAllLocks();
+	// 	return locks.map((lock) => ({
+	// 		id: lock.lock_id,
+	// 		name: lock.name,
+	// 		date: lock.date,
+	// 		story: lock.story,
+	// 	}));
+	// }
 
-	// Clear cache (useful for development)
-	clearCache() {
-		this.cache.clear();
-		this.allLocksCache = null;
-		this.storiesCache = null;
-	}
+	// // Clear cache (useful for development)
+	// clearCache() {
+	// 	this.cache.clear();
+	// 	this.allLocksCache = null;
+	// 	this.storiesCache = null;
+	// }
 }
 
 // Create a singleton instance
 const lockDataAPI = new LockDataAPI();
 
-// Export both the API instance and the old format for backward compatibility
 export { lockDataAPI };
 
-// For backward compatibility, export a function that returns the lock data array
-export async function getLockData() {
-	return await lockDataAPI.getLockData();
-}
+// // For backward compatibility, export a function that returns the lock data array
+// export async function getLockData() {
+// 	return await lockDataAPI.getLockData();
+// }
 
-// Export the old lockData format as a promise for immediate compatibility
-export const lockData = lockDataAPI.getLockData();
+// // Export the old lockData format as a promise for immediate compatibility
+// export const lockData = lockDataAPI.getLockData();

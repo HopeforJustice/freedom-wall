@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { canvas, camera, scene } from "../index.js";
 import { setButtonHover } from "../animation/buttonAnimation.js";
 import { handleZoom } from "../camera/cameraControls.js";
+import { lockDataAPI } from "../locks/lockDataAPI.js";
 
 // Raycaster for 3D object interaction
 const raycaster = new THREE.Raycaster();
@@ -199,37 +200,33 @@ function handleTouchTap(position) {
  */
 async function showLockStory(lockInfo) {
 	try {
+		const storyModal = document.getElementById("storyModal");
+		const storyText = document.getElementById("storyText");
+		const storyTitle = document.getElementById("storyTitle");
+		const closeStoryBtn = document.getElementById("closeStory");
+		const storyDialog = document.getElementById("storyDialog");
 		console.log("Fetching story for lock:", lockInfo);
 
+		storyModal.classList.remove("hidden", "opacity-0");
+
+		closeStoryBtn.onclick = () => {
+			storyModal.classList.add("opacity-0", "hidden");
+		};
+
+		storyModal.onclick = (e) => {
+			if (e.target === storyDialog) {
+				storyModal.classList.add("opacity-0", "hidden");
+			}
+		};
+
 		// Fetch story from API
-		const response = await fetch(`/api/stories/${lockInfo.id}`);
-		console.log("API response status:", response.status, response.statusText);
+		const result = await lockDataAPI.getLock(lockInfo.id);
 
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		const result = await response.json();
 		console.log("API response data:", result);
 
-		if (result.success && result.data) {
-			const story = result.data;
-			const storyModal = document.getElementById("storyModal");
-			const storyText = document.getElementById("storyText");
-			const closeStoryBtn = document.getElementById("closeStory");
-			const storyTitle = document.getElementById("storyTitle");
-			//show the modal
-			closeStoryBtn.onclick = () => {
-				storyModal.classList.add("hidden", "opacity-0");
-			};
-			window.onclick = (event) => {
-				if (!storyModal.contains(event.target)) {
-					storyModal.classList.add("hidden", "opacity-0");
-				}
-			};
-			storyModal.classList.remove("hidden", "opacity-0");
-			storyTitle.textContent = story.title || "Untitled Story";
-			storyText.textContent = story.content || "No content available.";
+		if (result) {
+			//fill the modal with story data
+			storyText.setHTMLUnsafe(result.content);
 		} else {
 			alert(
 				`Story for ${lockInfo.name}\n\nNo story content available for this lock.`
