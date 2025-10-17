@@ -7,20 +7,15 @@ export default function middleware(request) {
 	console.log("Detected Country from header:", headerCountry);
 	console.log("Detected City from header:", headerCity);
 
-	const existingCountry =
-		request.cookies.get("user-country")?.value || "Default";
-	const existingCity =
-		request.cookies.get("user-city")?.value || "Default City";
-
-	const country = existingCountry || headerCountry;
-	const city = existingCity || headerCity;
+	const country = headerCountry;
+	const city = headerCity;
 	const response = new Response("OK");
 	console.log("Middleware executed for IP:", ip);
 
 	if (ip) {
 		response.cookies.set("user-ip", ip, { path: "/" });
-		response.cookies.set("user-country", country, { path: "/" });
-		response.cookies.set("user-city", city, { path: "/" });
+		response.cookies.set("user-country", headerCountry, { path: "/" });
+		response.cookies.set("user-city", headerCity, { path: "/" });
 		console.log("Set cookies - IP:", ip, "Country:", country, "City:", city);
 	}
 	return response;
