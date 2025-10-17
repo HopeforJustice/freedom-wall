@@ -26,7 +26,7 @@ class LockDataAPI {
 
 			do {
 				const response = await fetch(
-					`${API_BASE}/lock?per_page=${perPage}&page=${page}`
+					`${API_BASE}/lock?per_page=${perPage}&page=${page}&_fields[]=title&_fields[]=acf`
 				);
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
