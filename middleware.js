@@ -1,4 +1,4 @@
-export function middleware(request) {
+export default function middleware(request) {
 	const ip =
 		request.ip || request.headers.get("x-forwarded-for")?.split(",")[0];
 
