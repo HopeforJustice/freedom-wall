@@ -9,14 +9,26 @@ export default function middleware(request) {
 
 	const country = headerCountry;
 	const city = headerCity;
-	const response = new Response("OK");
-	console.log("Middleware executed for IP:", ip);
+
+	const headers = new Headers();
 
 	if (ip) {
-		response.cookies.set("user-ip", ip, { path: "/" });
-		response.cookies.set("user-country", headerCountry, { path: "/" });
-		response.cookies.set("user-city", headerCity, { path: "/" });
+		headers.append(
+			"Set-Cookie",
+			`user-ip=${encodeURIComponent(ip)}; Path=/; HttpOnly; SameSite=Lax`
+		);
+		headers.append(
+			"Set-Cookie",
+			`user-country=${encodeURIComponent(
+				country
+			)}; Path=/; HttpOnly; SameSite=Lax`
+		);
+		headers.append(
+			"Set-Cookie",
+			`user-city=${encodeURIComponent(city)}; Path=/; HttpOnly; SameSite=Lax`
+		);
 		console.log("Set cookies - IP:", ip, "Country:", country, "City:", city);
 	}
-	return response;
+
+	return new Response("OK", { status: 200, headers });
 }
