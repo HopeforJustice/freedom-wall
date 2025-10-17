@@ -30,5 +30,5 @@ export default function middleware(request) {
 		console.log("Set cookies - IP:", ip, "Country:", country, "City:", city);
 	}
 
-	return new Response("OK", { status: 200, headers });
+	return new Response(request.url, { status: 200, headers });
 }
