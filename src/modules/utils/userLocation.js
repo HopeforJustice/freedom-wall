@@ -1,13 +1,21 @@
 class UserLocation {
 	constructor() {
 		this.country = null;
-		this.city = null;
 		// Start fetching immediately
 		this._fetchPromise = this.fetchLocation();
 	}
 
 	async fetchLocation() {
+		// Check for spoofed country in URL
+		const params = new URLSearchParams(window.location.search);
+		const spoofCountry = params.get("country");
+		if (spoofCountry) {
+			this.country = spoofCountry;
+			return;
+		}
+
 		if (this.country) return; // already fetched
+
 		try {
 			const response = await fetch("/api/getLocation");
 			if (!response.ok) {
