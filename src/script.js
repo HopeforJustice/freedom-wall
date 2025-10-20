@@ -22,6 +22,29 @@ import {
 	isCameraAnimating,
 } from "./modules/index.js";
 
+async function getUserLocation() {
+	try {
+		const res = await fetch("/api/getLocation");
+		if (!res.ok) throw new Error("API error");
+		const data = await res.json(); // if your API returns JSON
+		// Or: const text = await res.text(); if it returns HTML/text
+
+		// Check for default/fallback values
+		if (!data.city || data.city === "Default") {
+			console.log("Geolocation not available on localhost or missing headers.");
+			// Fallback logic here
+		} else {
+			console.log("User city:", data.city);
+			// Use the city value in your UI
+		}
+	} catch (err) {
+		console.log("Could not fetch geolocation:", err);
+		// Fallback logic here
+	}
+}
+
+getUserLocation();
+
 // Window resize handling
 window.addEventListener("resize", () => {
 	// Update sizes

@@ -19,14 +19,14 @@ class LockDataAPI {
 				return this.allLocks;
 			}
 
-			const perPage = 100;
+			const perPage = 2000; //upped the limit in functions.php on wp side
 			let page = 1;
 			let allLocks = [];
 			let totalPages = 1;
 
 			do {
 				const response = await fetch(
-					`${API_BASE}/lock?per_page=${perPage}&page=${page}&_fields[]=title&_fields[]=acf`
+					`${API_BASE}/lock?per_page=${perPage}&page=${page}&_fields[]=title&_fields[]=acf&_fields[]=id`
 				);
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
