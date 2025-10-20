@@ -23,8 +23,10 @@ import {
 	userLocation,
 } from "./modules/index.js";
 
-const userCountry = await userLocation.fetchLocation();
-console.log("User country:", userLocation.getCountry());
+// If you need to wait for location to be ready:
+userLocation.ready().then(() => {
+	console.log(userLocation.getCountry());
+});
 
 // Window resize handling
 window.addEventListener("resize", () => {

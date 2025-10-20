@@ -1,6 +1,9 @@
 class UserLocation {
 	constructor() {
 		this.country = null;
+		this.city = null;
+		// Start fetching immediately
+		this._fetchPromise = this.fetchLocation();
 	}
 
 	async fetchLocation() {
@@ -12,6 +15,7 @@ class UserLocation {
 			}
 			const data = await response.json();
 			this.city = data.city;
+			this.country = data.country;
 		} catch (error) {
 			console.error("Error fetching user location:", error);
 			this.country = "Default";
@@ -21,7 +25,14 @@ class UserLocation {
 	getCountry() {
 		return this.country;
 	}
+
+	// Optional: expose a promise for when location is ready
+	ready() {
+		return this._fetchPromise;
+	}
 }
 
+// Singleton instance
 const userLocation = new UserLocation();
+
 export default userLocation;
