@@ -36,6 +36,7 @@ import {
 	getLockById,
 } from "./locks/lockUtils";
 import { handleZoom } from "./camera/cameraControls";
+import userLocation from "./utils/userLocation";
 
 export {
 	textSettings,
@@ -72,5 +73,5 @@ export {
 	removeAllStoryButtons,
 	findNewStory,
 	handleZoom,
+	userLocation,
 };
-export let storyModalVisible = false;
