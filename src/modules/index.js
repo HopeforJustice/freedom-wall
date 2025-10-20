@@ -37,6 +37,7 @@ import {
 } from "./locks/lockUtils";
 import { handleZoom } from "./camera/cameraControls";
 import userLocation from "./utils/userLocation";
+import decodeHTML from "./utils/decodeHtml";
 
 export {
 	textSettings,
@@ -74,4 +75,5 @@ export {
 	findNewStory,
 	handleZoom,
 	userLocation,
+	decodeHTML,
 };

@@ -4,7 +4,7 @@
  * ========================================
  */
 import * as THREE from "three";
-import { canvas, camera, scene } from "../index.js";
+import { canvas, camera, scene, decodeHTML } from "../index.js";
 import { setButtonHover } from "../animation/buttonAnimation.js";
 import { handleZoom } from "../camera/cameraControls.js";
 import { lockDataAPI } from "../locks/lockDataAPI.js";
@@ -199,45 +199,50 @@ function handleTouchTap(position) {
  * @param {Object} lockInfo - Lock information object
  */
 async function showLockStory(lockInfo) {
-	try {
-		const storyModal = document.getElementById("storyModal");
-		const storyText = document.getElementById("storyText");
-		const storyTitle = document.getElementById("storyTitle");
-		const closeStoryBtn = document.getElementById("closeStory");
-		const storyDialog = document.getElementById("storyDialog");
-		console.log("Fetching story for lock:", lockInfo);
+	// Dispatch a custom event to show the story modal
+	window.dispatchEvent(new CustomEvent("showLockStory", { detail: lockInfo }));
 
-		storyModal.classList.remove("hidden", "opacity-0");
+	//switched to event-based handling in Modal.jsx
+	// try {
+	// 	const storyModal = document.getElementById("storyModal");
+	// 	const storyText = document.getElementById("storyText");
+	// 	const storyTitle = document.getElementById("storyTitle");
+	// 	const closeStoryBtn = document.getElementById("closeStory");
+	// 	const storyDialog = document.getElementById("storyDialog");
+	// 	console.log("Fetching story for lock:", lockInfo);
 
-		closeStoryBtn.onclick = () => {
-			storyModal.classList.add("opacity-0", "hidden");
-		};
+	// 	storyModal.classList.remove("hidden", "opacity-0");
 
-		storyModal.onclick = (e) => {
-			if (e.target === storyDialog) {
-				storyModal.classList.add("opacity-0", "hidden");
-			}
-		};
+	// 	closeStoryBtn.onclick = () => {
+	// 		storyModal.classList.add("opacity-0", "hidden");
+	// 	};
 
-		// Fetch story from API
-		const result = await lockDataAPI.getLock(lockInfo.id);
+	// 	storyModal.onclick = (e) => {
+	// 		if (e.target === storyDialog) {
+	// 			storyModal.classList.add("opacity-0", "hidden");
+	// 		}
+	// 	};
 
-		console.log("API response data:", result);
+	// 	// Fetch story from API
+	// 	const result = await lockDataAPI.getLock(lockInfo.id);
 
-		if (result) {
-			//fill the modal with story data
-			storyText.setHTMLUnsafe(result.content);
-		} else {
-			alert(
-				`Story for ${lockInfo.name}\n\nNo story content available for this lock.`
-			);
-		}
-	} catch (error) {
-		console.error("Error fetching story:", error);
-		alert(
-			`Story for ${lockInfo.name}\n\nError loading story: ${error.message}\n\nPlease try again later.`
-		);
-	}
+	// 	console.log("API response data:", result);
+
+	// 	if (result) {
+	// 		//fill the modal with story data
+	// 		const decodedHtmlContent = decodeHTML(result.content);
+	// 		storyText.innerHTML = decodedHtmlContent;
+	// 	} else {
+	// 		alert(
+	// 			`Story for ${lockInfo.name}\n\nNo story content available for this lock.`
+	// 		);
+	// 	}
+	// } catch (error) {
+	// 	console.error("Error fetching story:", error);
+	// 	alert(
+	// 		`Story for ${lockInfo.name}\n\nError loading story: ${error.message}\n\nPlease try again later.`
+	// 	);
+	// }
 }
 
 export const createCanvasEvents = (cameraMovement) => {

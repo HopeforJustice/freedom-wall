@@ -1,7 +1,5 @@
-// API-based lock data fetcher
-// Replaces the hardcoded lockData with database calls
+import userLocation from "../utils/userLocation";
 
-// Determine API base URL based on environment
 const getApiBase = () => {
 	return "https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2";
 };
@@ -66,13 +64,23 @@ class LockDataAPI {
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}
 			const lock = await response.json();
+			const country = await userLocation.getCountry();
+
+			function determineContentByCountry(lock, country) {
+				// If country is 'US'and we have US Content use 'us_content' ACF field; otherwise, use 'content' field
+				if (country === "US" && lock.acf && lock.acf.us_content) {
+					return lock.acf.us_content;
+				}
+				return lock.content.rendered;
+			}
 
 			// Convert to the format expected by the frontend
 			const formattedLock = {
 				id: lock.id,
 				name: lock.title.rendered,
 				date: lock.acf.lock_date,
-				content: lock.content.rendered,
+				content: determineContentByCountry(lock, country),
+				askAmount: lock.acf.ask_amount,
 			};
 
 			return formattedLock;
