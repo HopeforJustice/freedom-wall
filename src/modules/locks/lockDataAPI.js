@@ -74,7 +74,7 @@ class LockDataAPI {
 			switch (country) {
 				case "US":
 					if (lock.acf && lock.acf.us_content) {
-						content = decodeHTML(lock.acf.us_content);
+						content = lock.acf.us_content;
 					} else {
 						content = lock.content.rendered;
 					}

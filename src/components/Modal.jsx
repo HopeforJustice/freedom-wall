@@ -1,65 +1,143 @@
 import { useState, useEffect } from "react";
 import { lockDataAPI } from "../modules/locks/lockDataAPI";
 import StoryImage from "./StoryImage";
+import { decodeHTML } from "../modules";
 
-export default function Modal({ lockInfo, setModalOpen }) {
+export default function Modal({
+	lockInfo = null,
+	setModalOpen,
+	type = "story",
+}) {
 	const [loading, setLoading] = useState(true);
 	const [lockData, setLockData] = useState(null);
+	const [data, setData] = useState(null);
+	const [fade, setFade] = useState(false);
+	const [fadeContent, setFadeContent] = useState(false);
 
 	useEffect(() => {
 		console.log("Modal received lockInfo:", lockInfo);
-		if (!lockInfo?.id) return;
 		setLoading(true);
-		lockDataAPI.getLock(lockInfo.id).then((result) => {
-			setLockData(result);
-			setLoading(false);
-		});
+		setFade(true);
+		if (!type || type !== "story") {
+			fetch(
+				"https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2?_embed"
+			)
+				.then((res) => res.json())
+				.then((json) => {
+					setData(json);
+					console.log("Modal fetched data:", json);
+					setLoading(false);
+				})
+				.then(() => {
+					// Fade in content after a short delay
+					setTimeout(() => {
+						setFadeContent(true);
+					}, 100);
+				});
+			return;
+		}
+		if (!lockInfo?.id) return;
+		lockDataAPI
+			.getLock(lockInfo.id)
+			.then((result) => {
+				setLockData(result);
+				setLoading(false);
+			})
+			.then(() => {
+				setTimeout(() => {
+					setFadeContent(true);
+				}, 100);
+			});
 	}, [lockInfo?.id]);
 
 	return (
 		<>
-			{/* <!-- story modal --> */}
-			<div className="top-0 w-full h-full fixed pb-10" id="storyModal">
+			{/* <!-- modal --> */}
+			<div
+				className={`transition-all duration-200 ${
+					fade ? "opacity-100 top-0" : "opacity-0 top-10"
+				} w-full h-full fixed pb-10 z-100`}
+			>
 				<div
-					id="storyDialog"
+					id="dialog"
 					className="w-full h-full flex justify-center items-center p-2 md:p-8 pb-8 lg:pb-16 xl:p-0 xl:pt-28"
 					onClick={(e) => {
-						if (e.target.id === "storyDialog") {
-							setModalOpen(false);
+						if (e.target.id === "dialog") {
+							setFade(false);
+							window.setTimeout(() => {
+								setModalOpen(false);
+							}, 200);
 						}
 					}}
 				>
 					<div className="bg-[#fafafa] max-w-5xl rounded-2xl w-full h-full transition-all relative">
 						<button
-							className="absolute right-2 top-2 bg-hfj-black text-white p-2.5 px-4 rounded-full leading-none font-bold"
+							className="absolute z-10 right-2 top-2 bg-hfj-black text-white p-2.5 px-4 rounded-full leading-none font-bold"
 							onClick={() => {
-								setModalOpen(false);
+								setFade(false);
+								window.setTimeout(() => {
+									setModalOpen(false);
+								}, 200);
 							}}
 						>
 							Close
 						</button>
-						{/* story content */}
-						<div className="p-6 overflow-y-scroll h-full" id="storyContent">
-							{loading && <p>Loading story...</p>}
-							{!loading && lockData && (
-								<div className="h-[200vh]">
-									<div className="w-full h-64 md:h-96 bg-slate-200 overflow-hidden rounded-md">
+						{/* content */}
+						<div
+							className={`transition-all duration-200 p-6 overflow-y-scroll h-full`}
+							id="storyContent"
+						>
+							{loading && (
+								<div className="min-h-[100vh] animate-pulse z-0">
+									<div className="w-full h-64 md:h-96 bg-slate-200 overflow-hidden rounded-md"></div>
+
+									<div className="max-w-3xl mx-auto">
+										<div className="mt-8 w-full h-12 bg-slate-200 rounded-md"></div>
+										<div className="mt-6 w-2/3 h-4 bg-slate-200 rounded-md"></div>
+										<div className="mt-4 w-full h-4 bg-slate-200 rounded-md"></div>
+										<div className="mt-4 w-[90%] h-4 bg-slate-200 rounded-md"></div>
+										<div className="mt-4 w-full h-4 bg-slate-200 rounded-md"></div>
+									</div>
+								</div>
+							)}
+							{!loading && (lockData || data) && (
+								<div
+									className={`min-h-[100vh] transition-all duration-300 ${
+										fadeContent ? "opacity-100" : "opacity-0"
+									}`}
+								>
+									<div
+										className={`w-full md:h-96 bg-slate-200 overflow-hidden rounded-md ${
+											type === "info" ? "h-40 md:h-96" : "h-64 md:h-96"
+										}`}
+									>
 										<StoryImage
-											className="w-full h-full object-cover object-center rounded-md"
-											media={lockData.media}
+											className={`w-full h-full object-cover object-center rounded-md ${
+												type === "info" ? "object-left" : "object-center"
+											}`}
+											media={
+												lockData?.media
+													? lockData.media
+													: data?._embedded?.["wp:featuredmedia"]?.[0] || null
+											}
 										/>
 									</div>
 
 									<div
 										dangerouslySetInnerHTML={{
-											__html: lockData.content
+											__html: lockData?.content
 												? lockData.content
+												: data?.content?.rendered
+												? data.content.rendered
 												: "No content available.",
 										}}
 										className="[&>p]:mb-4 [&>h2]:font-display [&>h2]:text-4xl lg:[&>h2]:text-5xl [&>h2]:mb-4 [&>h2]:mt-8 max-w-3xl mx-auto"
 									></div>
 								</div>
 							)}
+							{/* {!loading && type === "info" && data && (
+								<div>{decodeHTML(data.content.rendered)}</div>
+							)} */}
 						</div>
 					</div>
 				</div>
