@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { lockDataAPI } from "../modules/locks/lockDataAPI";
 import StoryImage from "./StoryImage";
 import { decodeHTML } from "../modules";
+import { userLocation } from "../modules";
 
 export default function Modal({
 	lockInfo = null,
@@ -13,11 +14,15 @@ export default function Modal({
 	const [data, setData] = useState(null);
 	const [fade, setFade] = useState(false);
 	const [fadeContent, setFadeContent] = useState(false);
+	const [country, setCountry] = useState(userLocation.getCountry());
+	const [content, setContent] = useState(null);
 
 	useEffect(() => {
-		console.log("Modal received lockInfo:", lockInfo);
+		console.log("User country:", country);
 		setLoading(true);
-		setFade(true);
+		setFadeContent(false);
+		setFade(false);
+		window.setTimeout(() => setFade(true), 10);
 		if (!type || type !== "story") {
 			fetch(
 				"https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2?_embed"
@@ -25,6 +30,13 @@ export default function Modal({
 				.then((res) => res.json())
 				.then((json) => {
 					setData(json);
+					if (country === "US") {
+						setContent(
+							json.acf.us_freedom_wall_explanation || "no us specific content"
+						);
+					} else {
+						setContent(json.content.rendered || "no default content");
+					}
 					console.log("Modal fetched data:", json);
 					setLoading(false);
 				})
@@ -35,20 +47,21 @@ export default function Modal({
 					}, 100);
 				});
 			return;
+		} else {
+			lockDataAPI
+				.getLock(lockInfo.id)
+				.then((result) => {
+					setLockData(result);
+					setContent(result.content || "No content available.");
+					setLoading(false);
+				})
+				.then(() => {
+					setTimeout(() => {
+						setFadeContent(true);
+					}, 100);
+				});
 		}
-		if (!lockInfo?.id) return;
-		lockDataAPI
-			.getLock(lockInfo.id)
-			.then((result) => {
-				setLockData(result);
-				setLoading(false);
-			})
-			.then(() => {
-				setTimeout(() => {
-					setFadeContent(true);
-				}, 100);
-			});
-	}, [lockInfo?.id]);
+	}, []);
 
 	return (
 		<>
@@ -56,14 +69,15 @@ export default function Modal({
 			<div
 				className={`transition-all duration-200 ${
 					fade ? "opacity-100 top-0" : "opacity-0 top-10"
-				} w-full h-full fixed pb-10 z-100`}
+				} w-full h-[calc(100%-60px)] xl:h-full fixed z-100`}
 			>
 				<div
 					id="dialog"
-					className="w-full h-full flex justify-center items-center p-2 md:p-8 pb-8 lg:pb-16 xl:p-0 xl:pt-28"
+					className="w-full h-full flex justify-center items-center p-2 md:p-8 pb-4 lg:pb-12 xl:p-0 xl:pt-28 xl:bg-black/40"
 					onClick={(e) => {
 						if (e.target.id === "dialog") {
 							setFade(false);
+							setFadeContent(false);
 							window.setTimeout(() => {
 								setModalOpen(false);
 							}, 200);
@@ -75,6 +89,7 @@ export default function Modal({
 							className="absolute z-10 right-2 top-2 bg-hfj-black text-white p-2.5 px-4 rounded-full leading-none font-bold"
 							onClick={() => {
 								setFade(false);
+								setFadeContent(false);
 								window.setTimeout(() => {
 									setModalOpen(false);
 								}, 200);
@@ -125,19 +140,12 @@ export default function Modal({
 
 									<div
 										dangerouslySetInnerHTML={{
-											__html: lockData?.content
-												? lockData.content
-												: data?.content?.rendered
-												? data.content.rendered
-												: "No content available.",
+											__html: content,
 										}}
 										className="[&>p]:mb-4 [&>h2]:font-display [&>h2]:text-4xl lg:[&>h2]:text-5xl [&>h2]:mb-4 [&>h2]:mt-8 max-w-3xl mx-auto"
 									></div>
 								</div>
 							)}
-							{/* {!loading && type === "info" && data && (
-								<div>{decodeHTML(data.content.rendered)}</div>
-							)} */}
 						</div>
 					</div>
 				</div>

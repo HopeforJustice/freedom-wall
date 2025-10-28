@@ -14,8 +14,8 @@ function App() {
 		function handler(e) {
 			const info = e.detail;
 			setLockInfo(info);
-			setModalOpen(true);
 			setModalType("story");
+			setModalOpen(true);
 		}
 		window.addEventListener("showLockStory", handler);
 		return () => window.removeEventListener("showLockStory", handler);
@@ -25,8 +25,8 @@ function App() {
 		<>
 			<div>
 				<Loading />
-				{windowSize < 1024 && <Overlay mobile="true" />}
-				{windowSize >= 1024 && <Overlay />}
+				{windowSize < 1280 && <Overlay mobile="true" />}
+				{windowSize >= 1280 && <Overlay />}
 				{/* info button */}
 				<div
 					onClick={() => {
