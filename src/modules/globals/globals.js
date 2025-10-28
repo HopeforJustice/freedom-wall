@@ -19,6 +19,30 @@ export const sizes = {
 	height: window.innerHeight,
 };
 
+class Mode {
+	constructor() {
+		this.editMode = false;
+		this.showIdMode = false;
+	}
+	isEditMode() {
+		if (this.editMode === true) return true;
+		let params = new URLSearchParams(document.location.search);
+		let edit = params.get("edit");
+		if (edit === "true") {
+			this.editMode = true;
+			return this.editMode;
+		}
+		return false;
+	}
+	isShowIdMode() {
+		if (this.showIdMode === true) return true;
+		let params = new URLSearchParams(document.location.search);
+		this.showIdMode = params.has("showId");
+		return this.showIdMode;
+	}
+}
+
+export const mode = new Mode();
 export const gui = new GUI();
 export const canvas = document.querySelector("canvas.webgl");
 export const scene = new THREE.Scene();

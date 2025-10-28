@@ -8,10 +8,22 @@ import { canvas, camera, scene, decodeHTML } from "../index.js";
 import { setButtonHover } from "../animation/buttonAnimation.js";
 import { handleZoom } from "../camera/cameraControls.js";
 import { lockDataAPI } from "../locks/lockDataAPI.js";
+import { mode } from "../index.js";
 
 // Raycaster for 3D object interaction
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+const isInEditMode = mode.isEditMode();
+const showIdMode = mode.isShowIdMode();
+
+console.log("Edit mode:", isInEditMode);
+
+// Drag detection state
+let dragState = {
+	isDragging: false,
+	dragStart: { x: 0, y: 0 },
+	dragThreshold: 5, // px
+};
 
 // Touch state for pinch-to-zoom and button interactions
 let touchState = {
@@ -25,6 +37,18 @@ let touchState = {
  * Handle mouse move for hover detection
  */
 function handleCanvasMouseMove(event) {
+	// Drag detection
+	if (dragState.dragStart.x !== null && dragState.dragStart.y !== null) {
+		const dx = event.clientX - dragState.dragStart.x;
+		const dy = event.clientY - dragState.dragStart.y;
+		if (
+			Math.abs(dx) > dragState.dragThreshold ||
+			Math.abs(dy) > dragState.dragThreshold
+		) {
+			dragState.isDragging = true;
+		}
+	}
+
 	// Calculate mouse position in normalized device coordinates
 	const rect = canvas.getBoundingClientRect();
 	mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -60,6 +84,11 @@ function handleCanvasMouseMove(event) {
  * Handle click events on 3D objects
  */
 function handleCanvasClick(event) {
+	// Only handle click if not dragging
+	if (dragState.isDragging) {
+		return;
+	}
+
 	// Calculate mouse position in normalized device coordinates
 	const rect = canvas.getBoundingClientRect();
 	mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -74,6 +103,22 @@ function handleCanvasClick(event) {
 	for (let intersect of intersects) {
 		const object = intersect.object;
 
+		// Check if we are in edit mode
+		if (isInEditMode) {
+			// find lock id and open wordpress in new tab
+			if (object.userData && object.userData.lockInfo) {
+				const lockId = object.userData.lockInfo.id;
+				const wordpressUrl = `https://freedomwallcms.wpenginepowered.com/wp-admin/post.php?post=${lockId}&action=edit`;
+				window.open(wordpressUrl, "_blank");
+				break;
+			}
+		} else if (showIdMode) {
+			// find lock id and open wordpress in new tab
+			if (object.userData && object.userData.lockInfo) {
+				const lockId = object.userData.lockInfo.id;
+				alert(`Lock ID: ${lockId}`);
+			}
+		}
 		// Check if this is a story button
 		if (object.userData && object.userData.isStoryButton) {
 			// Handle story button click
@@ -247,17 +292,29 @@ async function showLockStory(lockInfo) {
 
 export const createCanvasEvents = (cameraMovement) => {
 	// Camera control event listeners
-	canvas.addEventListener("mousedown", (event) =>
-		cameraMovement.onMouseDown(event)
-	);
+	canvas.addEventListener("mousedown", (event) => {
+		dragState.isDragging = false;
+		dragState.dragStart = { x: event.clientX, y: event.clientY };
+		cameraMovement.onMouseDown(event);
+	});
 	canvas.addEventListener("mousemove", (event) => {
 		// Handle wall controls
 		cameraMovement.onMouseMove(event);
 		// Handle hover detection
 		handleCanvasMouseMove(event);
 	});
-	canvas.addEventListener("mouseup", () => cameraMovement.onMouseUp());
-	canvas.addEventListener("mouseleave", () => cameraMovement.onMouseUp());
+	canvas.addEventListener("mouseup", (event) => {
+		cameraMovement.onMouseUp(event);
+		dragState.dragStart = { x: null, y: null };
+		setTimeout(() => {
+			dragState.isDragging = false;
+		}, 0); // reset after click
+	});
+	canvas.addEventListener("mouseleave", () => {
+		cameraMovement.onMouseUp();
+		dragState.dragStart = { x: null, y: null };
+		dragState.isDragging = false;
+	});
 
 	// Click event listener for 3D object interaction
 	canvas.addEventListener("click", handleCanvasClick);

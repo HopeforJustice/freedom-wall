@@ -78,7 +78,7 @@ loadLockModels().then(() => {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (!urlParams.has("lockId")) {
 		createIntroAnimation({
-			delay: 0, // Small delay to ensure everything is rendered
+			delay: 1000, // Small delay to ensure everything is rendered
 			duration: 1000,
 			distance: 20, // Distance from the wall
 			targetLockId: null, // null for random lock, or specify lock ID like 253

@@ -38,6 +38,7 @@ import {
 import { handleZoom } from "./camera/cameraControls";
 import userLocation from "./utils/userLocation";
 import decodeHTML from "./utils/decodeHtml";
+import { mode } from "./globals/globals";
 
 export {
 	textSettings,
@@ -76,4 +77,5 @@ export {
 	handleZoom,
 	userLocation,
 	decodeHTML,
+	mode,
 };

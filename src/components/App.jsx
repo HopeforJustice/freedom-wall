@@ -21,7 +21,6 @@ function App() {
 	return (
 		<>
 			<div>
-				<canvas className="webgl"></canvas>
 				<Loading />
 				<Overlay />
 				{modalOpen && <Modal lockInfo={lockInfo} setModalOpen={setModalOpen} />}

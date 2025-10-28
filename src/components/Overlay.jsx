@@ -1,4 +1,32 @@
+import { useEffect, useState } from "react";
+import { isCameraAnimating, findNewStory } from "../modules";
+
 export default function Overlay() {
+	const [data, setData] = useState(null);
+	const [findingStory, setFindingStory] = useState(false);
+
+	useEffect(() => {
+		fetch("https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2")
+			.then((res) => res.json())
+			.then((json) => {
+				setData(json);
+				console.log("Overlay fetched data:", json);
+			});
+	}, []);
+
+	const findStory = () => {
+		setFindingStory(true);
+		if (!isCameraAnimating()) {
+			findNewStory({
+				zoomOutDistance: 50,
+				duration: 1500,
+			});
+		}
+		setTimeout(() => {
+			setFindingStory(false);
+		}, 2500);
+	};
+
 	return (
 		<>
 			{/* <!-- left gradient --> */}
@@ -15,21 +43,20 @@ export default function Overlay() {
 			{/* <!-- nav bar --> */}
 			<div className="bg-[#fafafa] flex font-bold xl:rounded-full fixed left-1/2 -translate-x-1/2 bottom-0 xl:left-auto xl:translate-x-0 xl:relative font-sans w-full xl:max-w-5xl p-1.5 justify-center gap-4 xl:justify-between mx-auto mt-5 xl:shadow-xl xl:mb-8">
 				<button
-					id="findNewStoryBtn"
-					className="find-story-btn bg-hfj-black text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex justify-center items-center cursor-pointer leading-none"
+					onClick={findStory}
+					disabled={findingStory}
+					className="bg-hfj-black disabled:opacity-70 disabled:cursor-not-allowed text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex justify-center items-center cursor-pointer leading-none"
 				>
-					Find&nbsp;Story
+					{data && data.acf.find_story_button_text}
 				</button>
 				<p className="font-apercu w-full text-center font-bold self-center max-w-xl hidden lg:block">
-					Every Lock on our Freedom Wall represents a real life changed.
-					<br />
-					Give to unlock more freedom this Christmas
+					{data && data.acf.nav_bar_text}
 				</p>
 				<button
-					id="findNewStoryBtn"
-					className="find-story-btn bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex justify-center items-center cursor-pointer leading-none"
+					id="donateBtn"
+					className="bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex justify-center items-center cursor-pointer leading-none"
 				>
-					Donate
+					{data && data.acf.donate_button_text}
 				</button>
 			</div>
 		</>

@@ -341,7 +341,7 @@ export function findNewStory(options = {}) {
 
 	// Phase 1: Zoom out
 	animateCameraToPosition(zoomOutPosition, camera.rotation.clone(), {
-		duration: duration,
+		duration: duration / 2,
 		easing: "easeInOutCubic",
 		onComplete: () => {
 			// Phase 2: Find a new random story lock (excluding current one) and zoom into it

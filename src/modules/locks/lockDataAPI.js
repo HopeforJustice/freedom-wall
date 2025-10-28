@@ -1,3 +1,4 @@
+import decodeHTML from "../utils/decodeHtml";
 import userLocation from "../utils/userLocation";
 
 const getApiBase = () => {
@@ -24,7 +25,7 @@ class LockDataAPI {
 
 			do {
 				const response = await fetch(
-					`${API_BASE}/lock?per_page=${perPage}&page=${page}&_fields[]=title&_fields[]=acf&_fields[]=id`
+					`${API_BASE}/lock?per_page=${perPage}&page=${page}&_fields[]=title&_fields[]=acf&_fields[]=id&orderby=id&order=asc`
 				);
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
@@ -58,20 +59,34 @@ class LockDataAPI {
 	// Fetch a specific lock by ID
 	async getLock(id) {
 		try {
-			const response = await fetch(`${API_BASE}/lock/${id}`);
+			const response = await fetch(`${API_BASE}/lock/${id}?_embed`);
 			console.log(`response for lock ${id}:`, response);
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}
 			const lock = await response.json();
 			const country = await userLocation.getCountry();
+			let content;
+			let askAmount;
+			let askCurrency;
+			let askPullOut;
 
-			function determineContentByCountry(lock, country) {
-				// If country is 'US'and we have US Content use 'us_content' ACF field; otherwise, use 'content' field
-				if (country === "US" && lock.acf && lock.acf.us_content) {
-					return lock.acf.us_content;
-				}
-				return lock.content.rendered;
+			switch (country) {
+				case "US":
+					if (lock.acf && lock.acf.us_content) {
+						content = decodeHTML(lock.acf.us_content);
+					} else {
+						content = lock.content.rendered;
+					}
+					askAmount = lock.acf?.us_ask_amount || null;
+					askCurrency = "USD";
+					askPullOut = lock.acf?.us_ask_pull_out || null;
+					break;
+				default:
+					content = lock.content.rendered;
+					askAmount = lock.acf?.uk_ask_amount || null;
+					askCurrency = "GBP";
+					askPullOut = lock.acf?.uk_ask_pull_out || null;
 			}
 
 			// Convert to the format expected by the frontend
@@ -79,8 +94,9 @@ class LockDataAPI {
 				id: lock.id,
 				name: lock.title.rendered,
 				date: lock.acf.lock_date,
-				content: determineContentByCountry(lock, country),
-				askAmount: lock.acf.ask_amount,
+				content: content || "",
+				askAmount: askAmount || null,
+				media: lock._embedded?.["wp:featuredmedia"]?.[0] || null,
 			};
 
 			return formattedLock;
