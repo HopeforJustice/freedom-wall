@@ -70,21 +70,26 @@ class LockDataAPI {
 			let askAmount;
 			let askCurrency;
 			let askPullOut;
+			let askReason;
 
 			switch (country) {
 				case "US":
+					//use content from acf if available
 					if (lock.acf && lock.acf.us_content) {
 						content = lock.acf.us_content;
 					} else {
+						// otherwise use default content from editor
 						content = lock.content.rendered;
 					}
 					askAmount = lock.acf?.us_ask_amount || null;
+					askReason = lock.acf?.us_ask_reason || null;
 					askCurrency = "USD";
 					askPullOut = lock.acf?.us_ask_pull_out || null;
 					break;
 				default:
 					content = lock.content.rendered;
 					askAmount = lock.acf?.uk_ask_amount || null;
+					askReason = lock.acf?.uk_ask_reason || null;
 					askCurrency = "GBP";
 					askPullOut = lock.acf?.uk_ask_pull_out || null;
 			}
@@ -96,6 +101,9 @@ class LockDataAPI {
 				date: lock.acf.lock_date,
 				content: content || "",
 				askAmount: askAmount || null,
+				askPullOut: askPullOut || null,
+				askCurrency: askCurrency || null,
+				askReason: askReason || null,
 				media: lock._embedded?.["wp:featuredmedia"]?.[0] || null,
 			};
 

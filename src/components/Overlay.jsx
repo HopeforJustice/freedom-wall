@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { isCameraAnimating, findNewStory } from "../modules";
+import { userLocation } from "../modules";
+import donationUrl from "../modules/utils/donationUrl";
 
 export default function Overlay({ mobile = false }) {
 	const [data, setData] = useState(null);
 	const [explainerOpen, setExplainerOpen] = useState(true);
 	const [findingStory, setFindingStory] = useState(false);
+	const [donateUrl, setDonateUrl] = useState("#");
 
 	useEffect(() => {
 		fetch("https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2")
@@ -13,6 +16,12 @@ export default function Overlay({ mobile = false }) {
 				setData(json);
 				console.log("Overlay fetched data:", json);
 			});
+
+		// Get the donation URL
+		donationUrl.getUrl().then((url) => {
+			setDonateUrl(url);
+		});
+
 		if (!mobile) {
 			setTimeout(() => {
 				setExplainerOpen(false);
@@ -60,7 +69,7 @@ export default function Overlay({ mobile = false }) {
 				</p>
 				<a
 					className="bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex font-bold justify-center items-center cursor-pointer leading-none"
-					href="https://donate.hopeforjustice.org"
+					href={donateUrl}
 				>
 					{data && data.acf.donate_button_text}
 				</a>

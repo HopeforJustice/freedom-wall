@@ -1,0 +1,56 @@
+import userLocation from "./userLocation";
+
+class DonationUrl {
+	constructor() {
+		this._ready = this.initialize();
+	}
+
+	async initialize() {
+		// Wait for userLocation to be ready
+		await userLocation.ready();
+	}
+
+	getCurrency() {
+		const country = userLocation.getCountry();
+		return country === "US" ? "usd" : "gbp";
+	}
+
+	getCampaign() {
+		const params = new URLSearchParams(window.location.search);
+		const campaign = params.get("campaign");
+		return campaign ? campaign : "2025 Freedom Wall";
+	}
+
+	async getUrl(amount = null) {
+		// Ensure userLocation is ready
+		await this._ready;
+
+		let donateURL = "https://donate.hopeforjustice.org/?";
+		const campaign = this.getCampaign();
+		const currency = this.getCurrency();
+
+		if (amount && currency) {
+			const encodedAmount = encodeURIComponent(amount);
+			const encodedCampaign = encodeURIComponent(campaign);
+			const encodedCurrency = encodeURIComponent(currency);
+			donateURL += `amount=${encodedAmount}&givingFrequency=once&campaign=${encodedCampaign}&currency=${encodedCurrency}`;
+		} else if (currency) {
+			const encodedCampaign = encodeURIComponent(campaign);
+			const encodedCurrency = encodeURIComponent(currency);
+			donateURL += `currency=${encodedCurrency}&campaign=${encodedCampaign}`;
+		} else {
+			const encodedCampaign = encodeURIComponent(campaign);
+			donateURL += `campaign=${encodedCampaign}`;
+		}
+		return donateURL;
+	}
+
+	ready() {
+		return this._ready;
+	}
+}
+
+// Singleton instance
+const donationUrl = new DonationUrl();
+
+export default donationUrl;

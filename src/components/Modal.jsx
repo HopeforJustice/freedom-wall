@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { lockDataAPI } from "../modules/locks/lockDataAPI";
 import StoryImage from "./StoryImage";
-import { decodeHTML } from "../modules";
-import { userLocation } from "../modules";
+import { userLocation, donationUrl } from "../modules";
 
 export default function Modal({
 	lockInfo = null,
@@ -16,13 +15,14 @@ export default function Modal({
 	const [fadeContent, setFadeContent] = useState(false);
 	const [country, setCountry] = useState(userLocation.getCountry());
 	const [content, setContent] = useState(null);
+	const [donateURL, setDonateURL] = useState("#");
 
 	useEffect(() => {
 		console.log("User country:", country);
 		setLoading(true);
 		setFadeContent(false);
 		setFade(false);
-		window.setTimeout(() => setFade(true), 10);
+		window.setTimeout(() => setFade(true), 50);
 		if (!type || type !== "story") {
 			fetch(
 				"https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2?_embed"
@@ -63,17 +63,29 @@ export default function Modal({
 		}
 	}, []);
 
+	useEffect(() => {
+		if (lockData && lockData.askAmount) {
+			donationUrl.getUrl(lockData.askAmount).then((url) => {
+				setDonateURL(url);
+			});
+		}
+	}, [lockData]);
+
+	const redirectToDonate = () => {
+		window.location.href = donateURL;
+	};
+
 	return (
 		<>
 			{/* <!-- modal --> */}
 			<div
 				className={`transition-all duration-200 ${
-					fade ? "opacity-100 top-0" : "opacity-0 top-10"
-				} w-full h-[calc(100%-60px)] xl:h-full fixed z-100`}
+					fade ? "opacity-100" : "opacity-0"
+				} w-full h-[calc(100%-60px)] xl:h-full fixed z-100 top-0`}
 			>
 				<div
 					id="dialog"
-					className="w-full h-full flex justify-center items-center p-2 md:p-8 pb-4 lg:pb-12 xl:p-0 xl:pt-28 xl:bg-black/40"
+					className={`relative transition-all duration-200 w-full h-full flex justify-center items-center p-2 md:p-8 pb-4 lg:pb-12 xl:p-0 xl:pt-28 xl:bg-black/40`}
 					onClick={(e) => {
 						if (e.target.id === "dialog") {
 							setFade(false);
@@ -84,7 +96,11 @@ export default function Modal({
 						}
 					}}
 				>
-					<div className="bg-[#fafafa] max-w-5xl rounded-2xl w-full h-full transition-all relative">
+					<div
+						className={`${
+							fade ? "top-0" : "top-10"
+						} bg-[#fafafa] max-w-5xl rounded-2xl w-full h-full transition-all relative`}
+					>
 						<button
 							className="absolute z-10 right-2 top-2 bg-hfj-black text-white p-2.5 px-4 rounded-full leading-none font-bold"
 							onClick={() => {
@@ -137,13 +153,70 @@ export default function Modal({
 											}
 										/>
 									</div>
-
-									<div
-										dangerouslySetInnerHTML={{
-											__html: content,
-										}}
-										className="[&>p]:mb-4 [&>h2]:font-display [&>h2]:text-4xl lg:[&>h2]:text-5xl [&>h2]:mb-4 [&>h2]:mt-8 max-w-3xl mx-auto"
-									></div>
+									<div className="max-w-3xl mx-auto mb-[200px]">
+										<div
+											dangerouslySetInnerHTML={{
+												__html: content,
+											}}
+											className="[&>p]:mb-4 [&>h2]:font-display [&>h2]:text-4xl lg:[&>h2]:text-5xl [&>h2]:mb-4 [&>h2]:mt-8"
+										></div>
+										{/* ask */}
+										{lockData && lockData.askPullOut && (
+											<div className="">
+												<p className="font-bold text-2xl border-l-2 border-hfj-red pl-4 mt-12 lg:text-3xl">
+													{lockData.askPullOut}
+												</p>
+												<p className="text-lg mt-6">{lockData.askReason}</p>
+												<div className="flex gap-2 mt-6">
+													<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-2 flex justify-start items-center max-w-48 text-lg">
+														<label
+															htmlFor="Amount"
+															className="font-bold text-xl mr-4 hidden"
+														>
+															Amount
+														</label>
+														<div>
+															{lockData.askCurrency === "USD" ? (
+																<span className="font-bold mr-2 opacity-50">
+																	$
+																</span>
+															) : (
+																<span className="font-bold mr-2 opacity-50">
+																	£
+																</span>
+															)}
+														</div>
+														<input
+															className="focus:outline-none w-full font-bold mt-[1px]"
+															id="Amount"
+															type="text"
+															value={lockData.askAmount ?? ""}
+															inputMode="decimal"
+															pattern="^\\d*(\\.\\d*)?$"
+															onChange={(e) => {
+																// Only allow numbers or numbers with a decimal point
+																const val = e.target.value;
+																if (/^\d*(\.\d*)?$/.test(val) || val === "") {
+																	setLockData({
+																		...lockData,
+																		askAmount: val,
+																	});
+																}
+															}}
+														/>
+													</div>
+													<button
+														onClick={redirectToDonate}
+														disabled={lockData.askAmount ? false : true}
+														className="rounded-full bg-hfj-red p-2 px-6 font-bold cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
+													>
+														Donate {lockData.askCurrency === "USD" ? "$" : "£"}
+														{lockData.askAmount}
+													</button>
+												</div>
+											</div>
+										)}
+									</div>
 								</div>
 							)}
 						</div>

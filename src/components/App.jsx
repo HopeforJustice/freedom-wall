@@ -48,9 +48,9 @@ function App() {
 							transform="translate(-2.25 -2.25)"
 							fill="none"
 							stroke="#fff"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="1.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth="1.5"
 						/>
 					</svg>
 				</div>
