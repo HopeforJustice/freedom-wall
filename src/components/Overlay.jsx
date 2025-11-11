@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { isCameraAnimating, findNewStory } from "../modules";
 import { userLocation } from "../modules";
 import donationUrl from "../modules/utils/donationUrl";
+import { track } from "@vercel/analytics";
 
 export default function Overlay({ mobile = false }) {
 	const [data, setData] = useState(null);
@@ -36,6 +37,7 @@ export default function Overlay({ mobile = false }) {
 				zoomOutDistance: 50,
 				duration: 1500,
 			});
+			track("find_story_clicked");
 		}
 		setTimeout(() => {
 			setFindingStory(false);
@@ -70,6 +72,7 @@ export default function Overlay({ mobile = false }) {
 				<a
 					className="bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex font-bold justify-center items-center cursor-pointer leading-none"
 					href={donateUrl}
+					onClick={track("general_donation_button_clicked")}
 				>
 					{data && data.acf.donate_button_text}
 				</a>

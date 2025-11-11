@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Loading from "./Loading";
 import Overlay from "./Overlay";
 import Modal from "./Modal";
+import { Analytics } from "@vercel/analytics/react";
+import { track } from "@vercel/analytics";
 
 function App() {
 	const [modalOpen, setModalOpen] = useState(false);
@@ -24,6 +26,7 @@ function App() {
 	return (
 		<>
 			<div>
+				<Analytics />
 				<Loading />
 				{windowSize < 1280 && <Overlay mobile="true" />}
 				{windowSize >= 1280 && <Overlay />}
@@ -32,6 +35,7 @@ function App() {
 					onClick={() => {
 						setModalType("info");
 						setModalOpen(true);
+						track("info_button_clicked");
 					}}
 					className="fixed z-0 left-[20px] cursor-pointer top-[250px] lg:top-[350px] w-[40px] h-[40px] rounded-full bg-[#707070] flex items-center justify-center"
 				>

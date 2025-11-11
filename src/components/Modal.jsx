@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { lockDataAPI } from "../modules/locks/lockDataAPI";
 import StoryImage from "./StoryImage";
 import { userLocation, donationUrl } from "../modules";
+import { track } from "@vercel/analytics";
 
 export default function Modal({
 	lockInfo = null,
@@ -59,6 +60,9 @@ export default function Modal({
 					setTimeout(() => {
 						setFadeContent(true);
 					}, 100);
+				})
+				.then(() => {
+					track("lock_story_modal_opened", { lockId: lockInfo.id, lockName });
 				});
 		}
 	}, []);
