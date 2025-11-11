@@ -187,16 +187,16 @@ export default function Modal({
 													{lockData.askPullOut}
 												</p>
 												<div
+													className="[&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-2 [&>h3]:text-xl [&>h3]:mb-6 [&>h3]:mt-8 text-lg"
 													dangerouslySetInnerHTML={{
 														__html: lockData.askReason,
 													}}
-													className="text-lg mt-6"
 												></div>
-												<div className="flex flex-wrap gap-4 gap-y-3 mt-6">
-													<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-2 flex justify-start items-center max-w-48 text-lg">
+												<div className="flex flex-wrap gap-4 gap-y-3 mt-8">
+													<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-4 flex justify-start items-center max-w-48 text-2xl">
 														<label
 															htmlFor="Amount"
-															className="font-bold text-xl mr-4 hidden"
+															className="font-bold mr-4 hidden"
 														>
 															Amount
 														</label>
@@ -234,14 +234,14 @@ export default function Modal({
 														<button
 															onClick={redirectToDonate}
 															disabled={lockData.askAmount ? false : true}
-															className="rounded-full bg-hfj-red h-full p-2 px-6 font-bold cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
+															className="rounded-full bg-hfj-red h-full p-4 px-8 font-bold text-xl cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
 														>
 															Donate{" "}
 															{lockData.askCurrency === "USD" ? "$" : "£"}
 															{lockData.askAmount}
 														</button>
 														{doubled && (
-															<div className="bg-hfj-black text-[11px] sm:text-[12px] text-white rounded-full -bottom-5  absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-2">
+															<div className="bg-hfj-black text-[11px] sm:text-[12px] text-white rounded-full -bottom-4  absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-3">
 																Your gift will be doubled!
 															</div>
 														)}
