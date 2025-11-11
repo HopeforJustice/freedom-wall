@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { lockDataAPI } from "../modules/locks/lockDataAPI";
 import StoryImage from "./StoryImage";
 import { userLocation, donationUrl } from "../modules";
@@ -8,6 +8,7 @@ export default function Modal({
 	lockInfo = null,
 	setModalOpen,
 	type = "story",
+	doubled = true,
 }) {
 	const [loading, setLoading] = useState(true);
 	const [lockData, setLockData] = useState(null);
@@ -17,6 +18,12 @@ export default function Modal({
 	const [country, setCountry] = useState(userLocation.getCountry());
 	const [content, setContent] = useState(null);
 	const [donateURL, setDonateURL] = useState("#");
+	const hasTrackedOpen = useRef(false);
+
+	useEffect(() => {
+		// Reset tracking flag when modal opens with new content
+		hasTrackedOpen.current = false;
+	}, [lockInfo?.id, type]);
 
 	useEffect(() => {
 		console.log("User country:", country);
@@ -55,14 +62,19 @@ export default function Modal({
 					setLockData(result);
 					setContent(result.content || "No content available.");
 					setLoading(false);
+					// Only track once using ref
+					if (!hasTrackedOpen.current) {
+						hasTrackedOpen.current = true;
+						track("lock_story_modal_opened", {
+							lockId: lockInfo.id,
+							lockName: lockInfo.name,
+						});
+					}
 				})
 				.then(() => {
 					setTimeout(() => {
 						setFadeContent(true);
 					}, 100);
-				})
-				.then(() => {
-					track("lock_story_modal_opened", { lockId: lockInfo.id, lockName });
 				});
 		}
 	}, []);
@@ -76,7 +88,11 @@ export default function Modal({
 	}, [lockData]);
 
 	const redirectToDonate = () => {
-		window.location.href = donateURL;
+		// window.location.href = donateURL;
+		track("lock_donation_button_clicked", {
+			lockId: lockInfo.id,
+			lockName: lockInfo.name,
+		});
 	};
 
 	return (
@@ -170,8 +186,13 @@ export default function Modal({
 												<p className="font-bold text-2xl border-l-2 border-hfj-red pl-4 mt-12 lg:text-3xl">
 													{lockData.askPullOut}
 												</p>
-												<p className="text-lg mt-6">{lockData.askReason}</p>
-												<div className="flex gap-2 mt-6">
+												<div
+													dangerouslySetInnerHTML={{
+														__html: lockData.askReason,
+													}}
+													className="text-lg mt-6"
+												></div>
+												<div className="flex flex-wrap gap-4 gap-y-3 mt-6">
 													<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-2 flex justify-start items-center max-w-48 text-lg">
 														<label
 															htmlFor="Amount"
@@ -209,14 +230,22 @@ export default function Modal({
 															}}
 														/>
 													</div>
-													<button
-														onClick={redirectToDonate}
-														disabled={lockData.askAmount ? false : true}
-														className="rounded-full bg-hfj-red p-2 px-6 font-bold cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
-													>
-														Donate {lockData.askCurrency === "USD" ? "$" : "£"}
-														{lockData.askAmount}
-													</button>
+													<div className="relative">
+														<button
+															onClick={redirectToDonate}
+															disabled={lockData.askAmount ? false : true}
+															className="rounded-full bg-hfj-red h-full p-2 px-6 font-bold cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
+														>
+															Donate{" "}
+															{lockData.askCurrency === "USD" ? "$" : "£"}
+															{lockData.askAmount}
+														</button>
+														{doubled && (
+															<div className="bg-hfj-black text-[11px] sm:text-[12px] text-white rounded-full -bottom-5  absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-2">
+																Your gift will be doubled!
+															</div>
+														)}
+													</div>
 												</div>
 											</div>
 										)}

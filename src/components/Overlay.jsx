@@ -4,7 +4,7 @@ import { userLocation } from "../modules";
 import donationUrl from "../modules/utils/donationUrl";
 import { track } from "@vercel/analytics";
 
-export default function Overlay({ mobile = false }) {
+export default function Overlay({ mobile = false, doubled = true }) {
 	const [data, setData] = useState(null);
 	const [explainerOpen, setExplainerOpen] = useState(true);
 	const [findingStory, setFindingStory] = useState(false);
@@ -58,7 +58,7 @@ export default function Overlay({ mobile = false }) {
 			</div>
 
 			{/* <!-- nav bar --> */}
-			<div className="bg-[#fafafa] flex font-bold xl:rounded-full fixed left-1/2 -translate-x-1/2 bottom-0 xl:left-auto xl:translate-x-0 xl:relative font-sans w-full xl:max-w-5xl p-1.5 justify-center gap-4 xl:justify-between mx-auto mt-5 xl:shadow-xl xl:mb-8">
+			<div className="bg-[#fafafa] flex font-bold xl:rounded-full fixed left-1/2 -translate-x-1/2 bottom-0 xl:left-auto xl:translate-x-0 xl:relative font-sans w-full xl:max-w-5xl p-1.5 pb-5 xl:pb-1.5 justify-center gap-4 xl:justify-between mx-auto mt-5 xl:shadow-xl xl:mb-8">
 				<button
 					onClick={findStory}
 					disabled={findingStory}
@@ -69,13 +69,20 @@ export default function Overlay({ mobile = false }) {
 				<p className="font-apercu w-full text-center font-bold self-center max-w-xl hidden lg:block">
 					{data && data.acf.nav_bar_text}
 				</p>
-				<a
-					className="bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex font-bold justify-center items-center cursor-pointer leading-none"
-					href={donateUrl}
-					onClick={track("general_donation_button_clicked")}
-				>
-					{data && data.acf.donate_button_text}
-				</a>
+				<div className="relative">
+					<a
+						className="bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex font-bold justify-center items-center cursor-pointer leading-none"
+						href={donateUrl}
+						onClick={() => track("general_donation_button_clicked")}
+					>
+						{data && data.acf.donate_button_text}
+					</a>
+					{doubled && (
+						<div className="bg-hfj-black text-[12px] text-white rounded-full -bottom-4 absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-2">
+							Your gift will be doubled!
+						</div>
+					)}
+				</div>
 			</div>
 
 			{mobile && explainerOpen && (

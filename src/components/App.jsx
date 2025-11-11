@@ -10,6 +10,7 @@ function App() {
 	const [modalType, setModalType] = useState("story");
 	const [lockInfo, setLockInfo] = useState(null);
 	const windowSize = typeof window !== "undefined" ? window.innerWidth : 0;
+	const doubled = true;
 
 	// Listen for the showLockStory event to open the modal
 	useEffect(() => {
@@ -28,8 +29,8 @@ function App() {
 			<div>
 				<Analytics />
 				<Loading />
-				{windowSize < 1280 && <Overlay mobile="true" />}
-				{windowSize >= 1280 && <Overlay />}
+				{windowSize < 1280 && <Overlay mobile="true" doubled={doubled} />}
+				{windowSize >= 1280 && <Overlay doubled={doubled} />}
 				{/* info button */}
 				<div
 					onClick={() => {
@@ -60,6 +61,7 @@ function App() {
 				</div>
 				{modalOpen && (
 					<Modal
+						doubled={doubled}
 						lockInfo={lockInfo}
 						setModalOpen={setModalOpen}
 						type={modalType}
