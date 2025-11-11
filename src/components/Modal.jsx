@@ -88,7 +88,7 @@ export default function Modal({
 	}, [lockData]);
 
 	const redirectToDonate = () => {
-		// window.location.href = donateURL;
+		window.location.href = donateURL;
 		track("lock_donation_button_clicked", {
 			lockId: lockInfo.id,
 			lockName: lockInfo.name,
