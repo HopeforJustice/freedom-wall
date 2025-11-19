@@ -90,6 +90,11 @@ function handleCanvasClick(event) {
 		return;
 	}
 
+	// If in embedded mode, dispatch event to close explainer
+	if (isEmbedMode) {
+		window.dispatchEvent(new CustomEvent("canvasClickInEmbeddedMode"));
+	}
+
 	// Calculate mouse position in normalized device coordinates
 	const rect = canvas.getBoundingClientRect();
 	mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -306,6 +311,12 @@ export const createCanvasEvents = (cameraMovement) => {
 	});
 	canvas.addEventListener("mouseup", (event) => {
 		cameraMovement.onMouseUp(event);
+
+		// If in embedded mode and there was a drag, dispatch event to close explainer
+		if (isEmbedMode && dragState.isDragging) {
+			window.dispatchEvent(new CustomEvent("canvasClickInEmbeddedMode"));
+		}
+
 		dragState.dragStart = { x: null, y: null };
 		setTimeout(() => {
 			dragState.isDragging = false;
@@ -343,6 +354,11 @@ export const createCanvasEvents = (cameraMovement) => {
 		}
 	});
 	canvas.addEventListener("touchend", (event) => {
+		// If in embedded mode and this was not a tap (first touch is false), dispatch event to close explainer
+		if (isEmbedMode && !touchState.isFirstTouch && event.touches.length === 0) {
+			window.dispatchEvent(new CustomEvent("canvasClickInEmbeddedMode"));
+		}
+
 		// Handle tap detection
 		handleTouchEnd(event);
 		// Always pass to camera movement
