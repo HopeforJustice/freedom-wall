@@ -9,6 +9,7 @@ export default function Modal({
 	setModalOpen,
 	type = "story",
 	doubled = true,
+	isEmbedded = false,
 }) {
 	const [loading, setLoading] = useState(true);
 	const [lockData, setLockData] = useState(null);
@@ -105,7 +106,9 @@ export default function Modal({
 			>
 				<div
 					id="dialog"
-					className={`relative transition-all duration-200 w-full h-full flex justify-center items-center p-2 md:p-8 pb-4 lg:pb-12 xl:p-0 xl:pt-28 xl:bg-black/40`}
+					className={`relative transition-all duration-200 w-full h-full flex justify-center items-center p-2 md:p-8 pb-4 lg:pb-12 xl:p-0 xl:bg-black/40 ${
+						isEmbedded ? "xl:pt-2" : "xl:pt-28"
+					}`}
 					onClick={(e) => {
 						if (e.target.id === "dialog") {
 							setFade(false);
@@ -181,74 +184,76 @@ export default function Modal({
 											className="[&>p]:mb-4 [&>h2]:font-display [&>h2]:text-4xl lg:[&>h2]:text-5xl [&>h2]:mb-4 [&>h2]:mt-8"
 										></div>
 										{/* ask */}
-										{lockData && lockData.askPullOut && (
-											<div className="">
-												<p className="font-bold text-2xl border-l-2 border-hfj-red pl-4 mt-12 lg:text-3xl">
-													{lockData.askPullOut}
-												</p>
-												<div
-													className="[&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-2 [&>h3]:text-xl [&>h3]:mb-6 [&>h3]:mt-8 text-lg"
-													dangerouslySetInnerHTML={{
-														__html: lockData.askReason,
-													}}
-												></div>
-												<div className="flex flex-wrap gap-4 gap-y-3 mt-8">
-													<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-4 flex justify-start items-center max-w-48 text-2xl">
-														<label
-															htmlFor="Amount"
-															className="font-bold mr-4 hidden"
-														>
-															Amount
-														</label>
-														<div>
-															{lockData.askCurrency === "USD" ? (
-																<span className="font-bold mr-2 opacity-50">
-																	$
-																</span>
-															) : (
-																<span className="font-bold mr-2 opacity-50">
-																	£
-																</span>
+										{lockData &&
+											lockData.askPullOut &&
+											isEmbedded === false && (
+												<div className="">
+													<p className="font-bold text-2xl border-l-2 border-hfj-red pl-4 mt-12 lg:text-3xl">
+														{lockData.askPullOut}
+													</p>
+													<div
+														className="[&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-2 [&>h3]:text-xl [&>h3]:mb-6 [&>h3]:mt-8 text-lg"
+														dangerouslySetInnerHTML={{
+															__html: lockData.askReason,
+														}}
+													></div>
+													<div className="flex flex-wrap gap-4 gap-y-3 mt-8">
+														<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-4 flex justify-start items-center max-w-48 text-2xl">
+															<label
+																htmlFor="Amount"
+																className="font-bold mr-4 hidden"
+															>
+																Amount
+															</label>
+															<div>
+																{lockData.askCurrency === "USD" ? (
+																	<span className="font-bold mr-2 opacity-50">
+																		$
+																	</span>
+																) : (
+																	<span className="font-bold mr-2 opacity-50">
+																		£
+																	</span>
+																)}
+															</div>
+															<input
+																className="focus:outline-none w-full font-bold mt-[1px]"
+																id="Amount"
+																type="text"
+																value={lockData.askAmount ?? ""}
+																inputMode="decimal"
+																pattern="^\\d*(\\.\\d*)?$"
+																onChange={(e) => {
+																	// Only allow numbers or numbers with a decimal point
+																	const val = e.target.value;
+																	if (/^\d*(\.\d*)?$/.test(val) || val === "") {
+																		setLockData({
+																			...lockData,
+																			askAmount: val,
+																		});
+																	}
+																}}
+															/>
+														</div>
+														<div className="relative">
+															<button
+																onClick={redirectToDonate}
+																disabled={lockData.askAmount ? false : true}
+																className="rounded-full bg-hfj-red h-full p-4 px-8 font-bold text-xl cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
+															>
+																Donate{" "}
+																{lockData.askCurrency === "USD" ? "$" : "£"}
+																{lockData.askAmount}
+															</button>
+															{doubled && (
+																<div className="bg-hfj-black text-[11px] sm:text-[12px] text-white rounded-full -bottom-4  absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-3">
+																	Your gift will be doubled!
+																</div>
 															)}
 														</div>
-														<input
-															className="focus:outline-none w-full font-bold mt-[1px]"
-															id="Amount"
-															type="text"
-															value={lockData.askAmount ?? ""}
-															inputMode="decimal"
-															pattern="^\\d*(\\.\\d*)?$"
-															onChange={(e) => {
-																// Only allow numbers or numbers with a decimal point
-																const val = e.target.value;
-																if (/^\d*(\.\d*)?$/.test(val) || val === "") {
-																	setLockData({
-																		...lockData,
-																		askAmount: val,
-																	});
-																}
-															}}
-														/>
-													</div>
-													<div className="relative">
-														<button
-															onClick={redirectToDonate}
-															disabled={lockData.askAmount ? false : true}
-															className="rounded-full bg-hfj-red h-full p-4 px-8 font-bold text-xl cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
-														>
-															Donate{" "}
-															{lockData.askCurrency === "USD" ? "$" : "£"}
-															{lockData.askAmount}
-														</button>
-														{doubled && (
-															<div className="bg-hfj-black text-[11px] sm:text-[12px] text-white rounded-full -bottom-4  absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-3">
-																Your gift will be doubled!
-															</div>
-														)}
 													</div>
 												</div>
-											</div>
-										)}
+											)}
 									</div>
 								</div>
 							)}

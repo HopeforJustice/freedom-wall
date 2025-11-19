@@ -11,6 +11,12 @@ function App() {
 	const [lockInfo, setLockInfo] = useState(null);
 	const windowSize = typeof window !== "undefined" ? window.innerWidth : 0;
 	const doubled = true;
+	const [isEmbedded, setIsEmbedded] = useState(false);
+
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		setIsEmbedded(urlParams.has("embed"));
+	}, []);
 
 	// Listen for the showLockStory event to open the modal
 	useEffect(() => {
@@ -29,8 +35,12 @@ function App() {
 			<div>
 				<Analytics />
 				<Loading />
-				{windowSize < 1280 && <Overlay mobile="true" doubled={doubled} />}
-				{windowSize >= 1280 && <Overlay doubled={doubled} />}
+				{windowSize < 1280 && (
+					<Overlay isEmbedded={isEmbedded} mobile="true" doubled={doubled} />
+				)}
+				{windowSize >= 1280 && (
+					<Overlay isEmbedded={isEmbedded} doubled={doubled} />
+				)}
 				{/* info button */}
 				<div
 					onClick={() => {
@@ -61,6 +71,7 @@ function App() {
 				</div>
 				{modalOpen && (
 					<Modal
+						isEmbedded={isEmbedded}
 						doubled={doubled}
 						lockInfo={lockInfo}
 						setModalOpen={setModalOpen}
