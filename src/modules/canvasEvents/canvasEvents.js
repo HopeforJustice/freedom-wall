@@ -14,9 +14,10 @@ import { mode } from "../index.js";
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const isInEditMode = mode.isEditMode();
+const isEmbedMode = mode.isEmbedMode();
 const showIdMode = mode.isShowIdMode();
 
-console.log("Edit mode:", isInEditMode);
+console.log("Embed mode:", isEmbedMode);
 
 // Drag detection state
 let dragState = {
@@ -320,7 +321,9 @@ export const createCanvasEvents = (cameraMovement) => {
 	canvas.addEventListener("click", handleCanvasClick);
 
 	// Wheel event listener for zoom functionality
-	canvas.addEventListener("wheel", handleZoom);
+	if (!isEmbedMode) {
+		canvas.addEventListener("wheel", handleZoom);
+	}
 
 	// Touch event listeners for mobile/tablet support
 	canvas.addEventListener("touchstart", (event) => {

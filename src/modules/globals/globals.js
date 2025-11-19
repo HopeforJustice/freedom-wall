@@ -23,6 +23,7 @@ class Mode {
 	constructor() {
 		this.editMode = false;
 		this.showIdMode = false;
+		this.embedMode = false;
 	}
 	isEditMode() {
 		if (this.editMode === true) return true;
@@ -31,6 +32,16 @@ class Mode {
 		if (edit === "true") {
 			this.editMode = true;
 			return this.editMode;
+		}
+		return false;
+	}
+	isEmbedMode() {
+		if (this.editMode === true) return true;
+		let params = new URLSearchParams(document.location.search);
+		let embed = params.has("embed");
+		if (embed) {
+			this.embedMode = true;
+			return this.embedMode;
 		}
 		return false;
 	}
