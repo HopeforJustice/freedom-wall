@@ -8,9 +8,56 @@ class UserLocation {
 	async fetchLocation() {
 		// Check for spoofed country in URL
 		const params = new URLSearchParams(window.location.search);
+		const usaGroup = [
+			"AG",
+			"AR",
+			"BB",
+			"BS",
+			"BO",
+			"BR",
+			"BZ",
+			"CA",
+			"CL",
+			"CO",
+			"CR",
+			"DO",
+			"DM",
+			"EC",
+			"KH",
+			"LC",
+			"GD",
+			"GF",
+			"GP",
+			"GT",
+			"GY",
+			"HN",
+			"HT",
+			"JM",
+			"MQ",
+			"MX",
+			"NI",
+			"PA",
+			"PE",
+			"PR",
+			"PY",
+			"SR",
+			"SV",
+			"TT",
+			"US",
+			"UM",
+			"UY",
+			"VC",
+			"VE",
+			"VI",
+		];
+
 		const spoofCountry = params.get("country");
 		if (spoofCountry) {
-			this.country = spoofCountry;
+			if (usaGroup.includes(spoofCountry)) {
+				this.country = "US";
+			} else {
+				this.country = spoofCountry;
+			}
 			return;
 		}
 
@@ -22,8 +69,12 @@ class UserLocation {
 				throw new Error("Network response was not ok");
 			}
 			const data = await response.json();
+			if (usaGroup.includes(data.country)) {
+				this.country = "US";
+			} else {
+				this.country = data.country;
+			}
 			this.city = data.city;
-			this.country = data.country;
 		} catch (error) {
 			console.error("Error fetching user location:", error);
 			this.country = "Default";
