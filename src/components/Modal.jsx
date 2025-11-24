@@ -7,6 +7,7 @@ import { track } from "@vercel/analytics";
 export default function Modal({
 	lockInfo = null,
 	setModalOpen,
+	setModalType,
 	type = "story",
 	doubled = true,
 	isEmbedded = false,
@@ -26,11 +27,65 @@ export default function Modal({
 		hasTrackedOpen.current = false;
 	}, [lockInfo?.id, type]);
 
+	// Handle modal type changes (for in-modal navigation)
+	useEffect(() => {
+		if (type === "info" || (type === "story" && !lockInfo)) {
+			// Restart the loading and animation process for modal type changes
+			console.log("Modal type changed to:", type);
+			setLoading(true);
+			setFadeContent(false);
+
+			// Scroll modal to top
+			const storyContent = document.getElementById("storyContent");
+			if (storyContent) {
+				storyContent.scrollTop = 0;
+			}
+
+			// Trigger content reload
+			if (type === "info") {
+				fetch(
+					"https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2?_embed"
+				)
+					.then((res) => res.json())
+					.then((json) => {
+						setData(json);
+						// Set Freedom Wall explanation content based on country
+						if (country === "US") {
+							setContent(
+								json.acf.us_freedom_wall_explanation ||
+									json.acf.freedom_wall_explanation ||
+									json.content.rendered ||
+									"No Freedom Wall explanation available."
+							);
+						} else {
+							setContent(
+								json.acf.freedom_wall_explanation ||
+									json.content.rendered ||
+									"No Freedom Wall explanation available."
+							);
+						}
+						setLoading(false);
+					})
+					.then(() => {
+						// Fade in content after a short delay
+						setTimeout(() => {
+							setFadeContent(true);
+						}, 100);
+					});
+			}
+		}
+	}, [type, country]);
+
 	useEffect(() => {
 		console.log("User country:", country);
 		setLoading(true);
 		setFadeContent(false);
 		setFade(false);
+		// Scroll modal to top
+		const storyContent = document.getElementById("storyContent");
+		if (storyContent) {
+			storyContent.scrollTop = 0;
+		}
 		window.setTimeout(() => setFade(true), 50);
 		if (!type || type !== "story") {
 			fetch(
@@ -39,12 +94,20 @@ export default function Modal({
 				.then((res) => res.json())
 				.then((json) => {
 					setData(json);
+					// Set Freedom Wall explanation content based on country
 					if (country === "US") {
 						setContent(
-							json.acf.us_freedom_wall_explanation || "no us specific content"
+							json.acf.us_freedom_wall_explanation ||
+								json.acf.freedom_wall_explanation ||
+								json.content.rendered ||
+								"No Freedom Wall explanation available."
 						);
 					} else {
-						setContent(json.content.rendered || "no default content");
+						setContent(
+							json.acf.freedom_wall_explanation ||
+								json.content.rendered ||
+								"No Freedom Wall explanation available."
+						);
 					}
 					console.log("Modal fetched data:", json);
 					setLoading(false);
@@ -78,7 +141,7 @@ export default function Modal({
 					}, 100);
 				});
 		}
-	}, []);
+	}, [type, lockInfo?.id, country]);
 
 	useEffect(() => {
 		if (lockData && lockData.askAmount) {
@@ -170,7 +233,7 @@ export default function Modal({
 												type === "info" ? "object-left" : "object-center"
 											}`}
 											media={
-												lockData?.media
+												type === "story" && lockData?.media
 													? lockData.media
 													: data?._embedded?.["wp:featuredmedia"]?.[0] || null
 											}
@@ -181,10 +244,11 @@ export default function Modal({
 											dangerouslySetInnerHTML={{
 												__html: content,
 											}}
-											className="[&>p]:mb-4 [&>h2]:font-display [&>h2]:text-4xl lg:[&>h2]:text-5xl [&>h2]:mb-4 [&>h2]:mt-8"
+											className="[&>p]:mb-4 [&>h2]:font-display [&>h2]:font-normal [&>h2]:text-4xl lg:[&>h2]:text-5xl [&>h2]:mb-4 [&>h2]:mt-8"
 										></div>
 										{/* ask */}
-										{lockData &&
+										{type === "story" &&
+											lockData &&
 											lockData.askPullOut &&
 											isEmbedded === false && (
 												<div className="">
@@ -253,6 +317,73 @@ export default function Modal({
 														</div>
 													</div>
 												</div>
+											)}
+										{/* switch to info modal */}
+										{type === "story" && (
+											<div
+												onClick={() => {
+													// Use fade transition to switch to info modal
+													setFade(false);
+													setFadeContent(false);
+
+													setTimeout(() => {
+														// Switch to info modal with history
+														if (setModalType) {
+															setModalType("info");
+															// Restart the fade-in animation
+															setTimeout(() => {
+																setFade(true);
+															}, 50);
+														} else {
+															// Fallback to event-based approach
+															window.dispatchEvent(
+																new CustomEvent("openInfoModal")
+															);
+														}
+													}, 200);
+
+													track("freedom_wall_explanation_clicked", {
+														from: "story_modal",
+													});
+												}}
+												className="w-full p-4 bg-hfj-yellow-tint3 text-hfj-black font-bold cursor-pointertransition-colors duration-200 rounded-lg mt-10 flex items-center gap-4 hover:cursor-pointer hover:bg-hfj-yellow-tint3/20"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="19.5"
+													height="19.5"
+													viewBox="0 0 19.5 19.5"
+												>
+													<path
+														id="Path_17244"
+														data-name="Path 17244"
+														d="M11.25,11.25l.041-.02a.75.75,0,0,1,1.063.852l-.708,2.836a.75.75,0,0,0,1.063.853l.041-.021M21,12a9,9,0,1,1-9-9,9,9,0,0,1,9,9ZM12,8.25h.008v.008H12Z"
+														transform="translate(-2.25 -2.25)"
+														fill="none"
+														stroke="#000"
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														strokeWidth="1.5"
+													/>
+												</svg>
+												<p>
+													Click here to find out more about what the Freedom
+													Wall is and what this website represents
+												</p>
+											</div>
+										)}
+										{/* doubling disclaimer */}
+										{type === "story" &&
+											lockData &&
+											lockData.askPullOut &&
+											isEmbedded === false &&
+											doubled && (
+												<p className="text-sm mt-10">
+													Name and image changed to protect the survivor’s
+													identity. Gifts given before December 31st 2025 will
+													be doubled up to a global total of $650,000 /
+													£500,000.{" "}
+												</p>
 											)}
 									</div>
 								</div>

@@ -156,7 +156,7 @@ export function animateCameraToPosition(
  */
 export function handleUrlParameters() {
 	const urlParams = new URLSearchParams(window.location.search);
-	const lockId = urlParams.get("lockId");
+	const lockId = urlParams.get("lockId") || urlParams.get("lockid");
 
 	if (lockId) {
 		const parsedLockId = parseInt(lockId, 10);
