@@ -146,10 +146,6 @@ function App() {
 			);
 		}
 
-		return () => {
-			window.removeEventListener("popstate", handlePopState);
-		};
-
 		// Helper function to set cookies that work in both development and production
 		const setCookie = (name, value, days = 10) => {
 			const isLocalhost =
@@ -177,6 +173,10 @@ function App() {
 				setCookie(cookieName, value);
 			}
 		});
+
+		return () => {
+			window.removeEventListener("popstate", handlePopState);
+		};
 	}, []);
 
 	// Listen for the showLockStory event to open the modal
