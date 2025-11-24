@@ -144,12 +144,16 @@ export default function Modal({
 	}, [type, lockInfo?.id, country]);
 
 	useEffect(() => {
-		if (lockData && lockData.askAmount) {
+		if (lockData && lockData.askAmount && type === "story") {
 			donationUrl.getUrl(lockData.askAmount).then((url) => {
 				setDonateURL(url);
 			});
+		} else {
+			donationUrl.getUrl().then((url) => {
+				setDonateURL(url);
+			});
 		}
-	}, [lockData]);
+	}, [lockData, type]);
 
 	const redirectToDonate = () => {
 		window.location.href = donateURL;
@@ -262,7 +266,7 @@ export default function Modal({
 														}}
 													></div>
 													<div className="flex flex-wrap gap-4 gap-y-3 mt-8">
-														<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-4 flex justify-start items-center max-w-48 text-2xl">
+														<div className="bg-white border-[1px] border-hfj-black-tint2/50 rounded-lg px-4 py-4 flex justify-start items-center max-w-36 md:max-w-48 text-2xl">
 															<label
 																htmlFor="Amount"
 																className="font-bold mr-4 hidden"
@@ -353,6 +357,7 @@ export default function Modal({
 													width="19.5"
 													height="19.5"
 													viewBox="0 0 19.5 19.5"
+													className="min-w-10"
 												>
 													<path
 														id="Path_17244"
@@ -367,8 +372,9 @@ export default function Modal({
 													/>
 												</svg>
 												<p>
-													Click here to find out more about what the Freedom
-													Wall is and what this website represents
+													Click here to find out more about Hope for Justice’s
+													work and what the locks on this Freedom Wall
+													represent.
 												</p>
 											</div>
 										)}
@@ -385,6 +391,29 @@ export default function Modal({
 													£500,000.{" "}
 												</p>
 											)}
+										{type === "info" && isEmbedded === false && (
+											<div className="flex flex-wrap gap-4 gap-y-3">
+												<div className="relative">
+													<button
+														onClick={redirectToDonate}
+														className="rounded-full bg-hfj-red h-full p-4 px-8 font-bold text-xl cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
+													>
+														Give
+													</button>
+													{doubled && (
+														<div className="bg-hfj-black text-[11px] sm:text-[12px] text-white rounded-full -bottom-4  absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-3">
+															Your gift will be doubled!
+														</div>
+													)}
+												</div>
+												<a
+													href="https://hopeforjustice.org/what-we-do"
+													className="rounded-full bg-hfj-black h-full p-4 px-8 font-bold text-xl cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
+												>
+													Learn more about our work
+												</a>
+											</div>
+										)}
 									</div>
 								</div>
 							)}

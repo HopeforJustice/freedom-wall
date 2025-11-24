@@ -107,7 +107,7 @@ export default function Overlay({
 					>
 						{data && data.acf.find_story_button_text}
 					</button>
-					<p className="font-apercu w-full text-center font-bold self-center max-w-xl hidden lg:block">
+					<p className="font-apercu w-full text-center font-bold self-center max-w-xl hidden lg:block text-balance">
 						{data && data.acf.nav_bar_text}
 					</p>
 					<div className="relative">
