@@ -18,7 +18,7 @@ class DonationUrl {
 	getCampaign() {
 		const params = new URLSearchParams(window.location.search);
 		const campaign = params.get("campaign");
-		return campaign ? campaign : "2025 Freedom Wall";
+		return campaign ? campaign : "2025 EOY";
 	}
 
 	async getUrl(amount = null) {
