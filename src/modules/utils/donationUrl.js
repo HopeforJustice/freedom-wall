@@ -30,13 +30,13 @@ class DonationUrl {
 		const currency = this.getCurrency();
 		const image =
 			"https://hopeforjustice.org/wp-content/uploads/2025/11/fw-close-nosp.jpg";
-		donateURL += `image=${encodeURIComponent(image)}&`;
+		donateURL += `image=${encodeURIComponent(image)}&givingFrequency=once&`;
 
 		if (amount && currency) {
 			const encodedAmount = encodeURIComponent(amount);
 			const encodedCampaign = encodeURIComponent(campaign);
 			const encodedCurrency = encodeURIComponent(currency);
-			donateURL += `amount=${encodedAmount}&givingFrequency=once&campaign=${encodedCampaign}&currency=${encodedCurrency}`;
+			donateURL += `amount=${encodedAmount}&campaign=${encodedCampaign}&currency=${encodedCurrency}`;
 		} else if (currency) {
 			const encodedCampaign = encodeURIComponent(campaign);
 			const encodedCurrency = encodeURIComponent(currency);
