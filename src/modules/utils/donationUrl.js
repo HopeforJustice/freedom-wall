@@ -28,6 +28,9 @@ class DonationUrl {
 		let donateURL = "https://donate.hopeforjustice.org/?";
 		const campaign = this.getCampaign();
 		const currency = this.getCurrency();
+		const image =
+			"https://hopeforjustice.org/wp-content/uploads/2025/11/fw-close-nosp.jpg";
+		donateURL += `image=${encodeURIComponent(image)}&`;
 
 		if (amount && currency) {
 			const encodedAmount = encodeURIComponent(amount);
