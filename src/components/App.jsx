@@ -4,6 +4,7 @@ import Overlay from "./Overlay";
 import Modal from "./Modal";
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
+import donationUrl from "../modules/utils/donationUrl";
 
 function App() {
 	const [modalOpen, setModalOpen] = useState(false);
@@ -12,6 +13,8 @@ function App() {
 	const windowSize = typeof window !== "undefined" ? window.innerWidth : 0;
 	const doubled = true;
 	const [isEmbedded, setIsEmbedded] = useState(false);
+	const [overlayData, setOverlayData] = useState(null);
+	const [donateUrl, setDonateUrl] = useState("#");
 
 	// Helper function to update URL and history state
 	const updateHistoryState = (type, lockId = null) => {
@@ -61,6 +64,21 @@ function App() {
 			updateHistoryState(type, lockInfo?.id);
 		}
 	};
+
+	// Fetch overlay data once on app mount
+	useEffect(() => {
+		fetch("https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2")
+			.then((res) => res.json())
+			.then((json) => {
+				setOverlayData(json);
+				console.log("App fetched overlay data:", json);
+			});
+
+		// Get the donation URL
+		donationUrl.getUrl().then((url) => {
+			setDonateUrl(url);
+		});
+	}, []);
 
 	useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search);
@@ -229,11 +247,22 @@ function App() {
 			<div>
 				<Analytics />
 				<Loading />
-				{windowSize < 1280 && (
-					<Overlay isEmbedded={isEmbedded} mobile="true" doubled={doubled} />
+				{windowSize < 1280 && !modalOpen && (
+					<Overlay
+						isEmbedded={isEmbedded}
+						mobile="true"
+						doubled={doubled}
+						data={overlayData}
+						donateUrl={donateUrl}
+					/>
 				)}
-				{windowSize >= 1280 && (
-					<Overlay isEmbedded={isEmbedded} doubled={doubled} />
+				{windowSize >= 1280 && !modalOpen && (
+					<Overlay
+						isEmbedded={isEmbedded}
+						doubled={doubled}
+						data={overlayData}
+						donateUrl={donateUrl}
+					/>
 				)}
 				{/* info button */}
 				<div

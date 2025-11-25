@@ -1,32 +1,17 @@
 import { useEffect, useState } from "react";
 import { isCameraAnimating, findNewStory } from "../modules";
 import { userLocation } from "../modules";
-import donationUrl from "../modules/utils/donationUrl";
 import { track } from "@vercel/analytics";
 
 export default function Overlay({
 	mobile = false,
 	doubled = true,
 	isEmbedded = false,
+	data = null,
+	donateUrl = "#",
 }) {
-	const [data, setData] = useState(null);
 	const [explainerOpen, setExplainerOpen] = useState(true);
 	const [findingStory, setFindingStory] = useState(false);
-	const [donateUrl, setDonateUrl] = useState("#");
-
-	useEffect(() => {
-		fetch("https://freedomwallcms.wpenginepowered.com/wp-json/wp/v2/pages/2")
-			.then((res) => res.json())
-			.then((json) => {
-				setData(json);
-				console.log("Overlay fetched data:", json);
-			});
-
-		// Get the donation URL
-		donationUrl.getUrl().then((url) => {
-			setDonateUrl(url);
-		});
-	}, []);
 
 	useEffect(() => {
 		if (!mobile && !isEmbedded) {
@@ -112,15 +97,17 @@ export default function Overlay({
 					</p>
 					<div className="relative">
 						<a
-							className="bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 flex font-bold justify-center items-center cursor-pointer leading-none"
+							className="bg-[#d21220] text-white lg:text-[20px] rounded-full py-3.5 px-8 lg:py-5 lg:px-10 lg:min-w-40 flex font-bold justify-center items-center cursor-pointer leading-none"
 							href={donateUrl}
 							onClick={() => track("general_donation_button_clicked")}
 						>
 							{data && data.acf.donate_button_text}
 						</a>
 						{doubled && (
-							<div className="bg-hfj-black text-[12px] text-white rounded-full -bottom-4 absolute left-1/2 -translate-x-1/2 whitespace-nowrap p-1 px-2">
-								Your gift will be doubled!
+							<div className="-bottom-6 absolute left-1/2 -translate-x-1/2">
+								<span className="bg-hfj-black text-[12px] lg:text-[14px] text-white rounded-full whitespace-nowrap p-1 px-2 block animate-bounce">
+									Your gift will be doubled!
+								</span>
 							</div>
 						)}
 					</div>

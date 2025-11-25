@@ -174,7 +174,7 @@ export default function Modal({
 				<div
 					id="dialog"
 					className={`relative transition-all duration-200 w-full h-full flex justify-center items-center p-2 md:p-8 pb-4 lg:pb-12 xl:p-0 xl:bg-black/40 ${
-						isEmbedded ? "xl:pt-2 xl:pb-2" : "xl:pt-28"
+						isEmbedded ? "xl:pt-2 xl:pb-2" : "xl:pt-2"
 					}`}
 					onClick={(e) => {
 						if (e.target.id === "dialog") {
@@ -392,7 +392,7 @@ export default function Modal({
 												</p>
 											)}
 										{type === "info" && isEmbedded === false && (
-											<div className="flex flex-wrap gap-4 gap-y-3">
+											<div className="flex flex-wrap gap-12 mt-8">
 												<div className="relative">
 													<button
 														onClick={redirectToDonate}
