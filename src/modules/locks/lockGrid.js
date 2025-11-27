@@ -234,17 +234,7 @@ async function generateLockGrid() {
 
 			// Create story button if this lock has a story
 			if (lockInfo.story) {
-				console.log(
-					`Creating story button for lock ${lockIndex} (${lockInfo.name}) with story: ${lockInfo.story}`
-				);
 				const button = createStoryButton(cloned);
-				if (button) {
-					console.log(
-						`Story button created successfully for lock ${lockIndex}`
-					);
-				} else {
-					console.log(`Story button creation failed for lock ${lockIndex}`);
-				}
 			}
 
 			lockIndex++;

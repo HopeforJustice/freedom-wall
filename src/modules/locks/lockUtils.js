@@ -47,6 +47,7 @@ export function getRandomLock() {
  */
 export function getRandomLockWithStory(excludeLock = null) {
 	const locksWithStories = [];
+	const excludedLocks = [];
 
 	scene.traverse((child) => {
 		// Look for objects that have children with text planes
@@ -58,7 +59,9 @@ export function getRandomLockWithStory(excludeLock = null) {
 					grandChild.geometry instanceof THREE.PlaneGeometry &&
 					grandChild.userData &&
 					grandChild.userData.lockInfo &&
-					grandChild.userData.lockInfo.story === true
+					grandChild.userData.lockInfo.story === true &&
+					(grandChild.userData.lockInfo.exclude === undefined ||
+						grandChild.userData.lockInfo.exclude === false)
 			);
 			if (hasStoryTextPlane && child !== excludeLock) {
 				locksWithStories.push(child);

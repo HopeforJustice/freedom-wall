@@ -38,6 +38,7 @@ class LockDataAPI {
 					name: lock.title.rendered,
 					date: lock.acf?.lock_date,
 					story: lock.acf?.show_lock_story,
+					exclude: lock.acf?.exclude,
 				}));
 				allLocks = allLocks.concat(locks);
 
