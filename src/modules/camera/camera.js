@@ -13,7 +13,7 @@ const createCamera = () => {
 		75,
 		sizes.width / sizes.height,
 		0.1,
-		100000
+		1000 // Reduced from 100000 for better performance
 	);
 	camera.position.x = 0;
 	camera.position.y = 0;

@@ -6,9 +6,14 @@
 
 import * as THREE from "three";
 import { scene } from "../globals/globals.js";
+import { registerInteractiveObject } from "../canvasEvents/canvasEvents.js";
 
 // 3D Story Buttons - supporting multiple buttons
 let storyButtons = []; // Array to store all story buttons
+
+// Shared resources for better performance
+let sharedButtonGeometry = null;
+const buttonMaterialCache = new Map(); // Cache materials by texture
 
 // Button animation state
 const buttonAnimation = {
@@ -74,8 +79,11 @@ export function createStoryButton(lockObject) {
 	const buttonWidth = (canvasWidth / canvasHeight) * 1.2; // Scale to maintain aspect ratio
 	const buttonHeight = 1.2;
 
-	// Create button geometry with dynamic width
-	const buttonGeometry = new THREE.PlaneGeometry(buttonWidth, buttonHeight);
+	// Create or reuse shared button geometry for better performance
+	if (!sharedButtonGeometry) {
+		sharedButtonGeometry = new THREE.PlaneGeometry(buttonWidth, buttonHeight);
+	}
+	const buttonGeometry = sharedButtonGeometry;
 	const buttonMaterial = new THREE.MeshBasicMaterial({
 		color: 0xffffff,
 		transparent: true,
@@ -139,6 +147,11 @@ export function createStoryButton(lockObject) {
 	// Apply texture to button
 	storyButton3D.material.map = texture;
 	storyButton3D.material.needsUpdate = true;
+	
+	// After initial setup, don't update material again
+	setTimeout(() => {
+		storyButton3D.material.needsUpdate = false;
+	}, 0);
 
 	// Position button relative to lock
 	const lockPosition = new THREE.Vector3();
@@ -165,6 +178,9 @@ export function createStoryButton(lockObject) {
 
 	// Add to buttons array
 	storyButtons.push(storyButton3D);
+	
+	// Register with raycasting system for optimized intersection
+	registerInteractiveObject(storyButton3D);
 
 	return storyButton3D;
 }

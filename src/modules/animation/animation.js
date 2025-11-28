@@ -13,22 +13,7 @@ import { updateButtonAnimation } from "./buttonAnimation.js";
 
 const clock = new THREE.Clock();
 
-// Frame rate limiting
-let lastTime = 0;
-const targetFPS = 60;
-const frameInterval = 1000 / targetFPS; // ~16.67ms between frames
-
-export const tick = (currentTime = performance.now()) => {
-	// Check if enough time has passed since last frame
-	if (currentTime - lastTime < frameInterval) {
-		window.requestAnimationFrame(tick);
-		return;
-	}
-
-	// Update last time, accounting for any drift
-	lastTime = currentTime - ((currentTime - lastTime) % frameInterval);
-
-	const elapsedTime = clock.getElapsedTime();
+export const tick = () => {
 	const deltaTime = clock.getDelta();
 
 	// Update camera animation

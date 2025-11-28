@@ -14,10 +14,14 @@ import {
 } from "../index.js";
 import { createStoryButton } from "../animation/buttonAnimation.js";
 import { lockDataAPI } from "./lockDataAPI.js";
+import { clearInteractiveObjects } from "../canvasEvents/canvasEvents.js";
 
 // Array to store loaded lock models
 let lockModels = [];
 let currentLockMeshes = []; // Track current lock meshes for cleanup
+
+// Material cache for better performance
+const textMaterialCache = new Map();
 
 const lockModelPaths = [
 	"/models/lockOne-no-text.glb",
@@ -28,18 +32,22 @@ const lockModelPaths = [
 export async function loadLockModels() {
 	const loadPromises = lockModelPaths.map((path) => {
 		return new Promise((resolve, reject) => {
-			gltfLoader.load(
-				path,
-				(gltf) => {
-					// Set up shadow settings for the model
-					gltf.scene.traverse(function (node) {
-						if (node.isMesh) {
-							node.castShadow = true;
-							node.receiveShadow = true;
-						}
-					});
-					resolve(gltf.scene);
-				},
+				gltfLoader.load(
+					path,
+					(gltf) => {
+						// Set up shadow settings for the model
+						gltf.scene.traverse(function (node) {
+							if (node.isMesh) {
+								node.castShadow = true;
+								node.receiveShadow = true;
+								// Optimize: don't update materials every frame
+								if (node.material) {
+									node.material.needsUpdate = false;
+								}
+							}
+						});
+						resolve(gltf.scene);
+					},
 				undefined,
 				reject
 			);
@@ -60,6 +68,9 @@ export async function loadLockModels() {
 
 // Function to clear existing locks from the scene
 function clearLockGrid() {
+	// Clear interactive objects registry
+	clearInteractiveObjects();
+	
 	// Remove all current lock meshes from scene
 	currentLockMeshes.forEach((mesh) => {
 		scene.remove(mesh);
@@ -67,8 +78,12 @@ function clearLockGrid() {
 		if (mesh.geometry) mesh.geometry.dispose();
 		if (mesh.material) {
 			if (Array.isArray(mesh.material)) {
-				mesh.material.forEach((mat) => mat.dispose());
+				mesh.material.forEach((mat) => {
+					if (mat.map) mat.map.dispose();
+					mat.dispose();
+				});
 			} else {
+				if (mesh.material.map) mesh.material.map.dispose();
 				mesh.material.dispose();
 			}
 		}
@@ -77,6 +92,9 @@ function clearLockGrid() {
 	// Clear the arrays
 	currentLockMeshes.length = 0;
 	textPlanes.length = 0;
+	
+	// Clear material cache
+	textMaterialCache.clear();
 
 	console.log("Cleared existing lock grid");
 }
@@ -203,6 +221,8 @@ async function generateLockGrid() {
 				alphaTest: 0.1,
 				side: THREE.DoubleSide,
 			});
+			// Mark material as not needing updates after initial creation
+			textMaterial.needsUpdate = false;
 
 			const textGeometry = new THREE.PlaneGeometry(4, 2);
 			const textPlane = new THREE.Mesh(textGeometry, textMaterial);

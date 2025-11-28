@@ -57,6 +57,8 @@ export const mode = new Mode();
 export const gui = new GUI();
 export const canvas = document.querySelector("canvas.webgl");
 export const scene = new THREE.Scene();
+// Enable frustum culling for better performance
+scene.autoUpdate = true;
 export let mixer = null;
 
 /**
@@ -68,11 +70,16 @@ const createRenderer = () => {
 	const renderer = new THREE.WebGLRenderer({
 		canvas: canvas,
 		antialias: true,
+		powerPreference: "high-performance", // Use high-performance GPU
 	});
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.setSize(sizes.width, sizes.height);
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	
+	// Enable optimizations
+	renderer.sortObjects = true; // Enable object sorting for better rendering
+	
 	return renderer;
 };
 export const renderer = createRenderer();

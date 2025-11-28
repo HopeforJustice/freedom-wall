@@ -28,19 +28,23 @@ userLocation.ready().then(() => {
 	console.log(userLocation.getCountry());
 });
 
-// Window resize handling
+// Window resize handling with debouncing
+let resizeTimeout;
 window.addEventListener("resize", () => {
-	// Update sizes
-	sizes.width = window.innerWidth;
-	sizes.height = window.innerHeight;
+	clearTimeout(resizeTimeout);
+	resizeTimeout = setTimeout(() => {
+		// Update sizes
+		sizes.width = window.innerWidth;
+		sizes.height = window.innerHeight;
 
-	// Update camera
-	camera.aspect = sizes.width / sizes.height;
-	camera.updateProjectionMatrix();
+		// Update camera
+		camera.aspect = sizes.width / sizes.height;
+		camera.updateProjectionMatrix();
 
-	// Update renderer
-	renderer.setSize(sizes.width, sizes.height);
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+		// Update renderer
+		renderer.setSize(sizes.width, sizes.height);
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	}, 150); // Debounce resize events
 });
 
 // GUI controls
@@ -125,7 +129,7 @@ window.addEventListener("message", (event) => {
 	}
 });
 
-// Also listen for localStorage changes as fallback
+// Also listen for localStorage changes (optimized with longer interval)
 let lastRegenerateTime = localStorage.getItem("lockGridRegenerate");
 setInterval(() => {
 	const currentRegenerateTime = localStorage.getItem("lockGridRegenerate");
@@ -136,7 +140,7 @@ setInterval(() => {
 			module.regenerateLockGrid();
 		});
 	}
-}, 1000);
+}, 5000); // Reduced frequency from 1s to 5s for better performance
 
 // Start the animation loop
 tick();

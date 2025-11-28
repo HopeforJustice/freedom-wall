@@ -91,19 +91,35 @@ export const textSettings = {
 
 export const textPlanes = []; // Store all text planes
 
-// Function to check if custom font is loaded
-
-let fontLoaded = false; // Track font loading status
+// Global font loading cache
+let fontLoaded = false;
+let fontLoadPromise = null;
 
 export async function waitForFontLoad(fontFamily, timeout = 3000) {
-	try {
-		await document.fonts.load(`16px ${fontFamily}`);
-		await document.fonts.load(`bold 16px ${fontFamily}`);
+	// Return cached result if already loaded
+	if (fontLoaded) {
 		return true;
-	} catch (error) {
-		console.warn(`Font ${fontFamily} failed to load:`, error);
-		return false;
 	}
+	
+	// Return existing promise if already loading
+	if (fontLoadPromise) {
+		return fontLoadPromise;
+	}
+	
+	// Start loading and cache the promise
+	fontLoadPromise = (async () => {
+		try {
+			await document.fonts.load(`16px ${fontFamily}`);
+			await document.fonts.load(`bold 16px ${fontFamily}`);
+			fontLoaded = true;
+			return true;
+		} catch (error) {
+			console.warn(`Font ${fontFamily} failed to load:`, error);
+			return false;
+		}
+	})();
+	
+	return fontLoadPromise;
 }
 
 // Function to create text texture for lock with name and date
@@ -121,10 +137,8 @@ export async function createLockTextTexture(lockInfo, config = textConfig) {
 		context.fillRect(0, 0, canvas.width, canvas.height);
 	}
 
-	// Wait for font to load if not already loaded
-	if (!fontLoaded) {
-		fontLoaded = await waitForFontLoad(config.fontFamily);
-	}
+	// Wait for font to load if not already loaded (uses cached result)
+	await waitForFontLoad(config.fontFamily);
 
 	// Determine which font to use
 	const fontToUse = fontLoaded
@@ -207,10 +221,8 @@ export async function createTextTexture(
 		context.fillRect(0, 0, canvas.width, canvas.height);
 	}
 
-	// Wait for font to load if not already loaded
-	if (!fontLoaded) {
-		fontLoaded = await waitForFontLoad(textConfig.fontFamily);
-	}
+	// Wait for font to load if not already loaded (uses cached result)
+	await waitForFontLoad(textConfig.fontFamily);
 
 	// Determine which font to use
 	const fontToUse = fontLoaded

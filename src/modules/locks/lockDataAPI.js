@@ -10,7 +10,15 @@ const API_BASE = getApiBase();
 class LockDataAPI {
 	constructor() {
 		this.allLocks = null;
+		this.lockCache = new Map(); // Cache individual lock fetches
 	}
+	
+	// Clear all caches
+	clearCache() {
+		this.allLocks = null;
+		this.lockCache.clear();
+	}
+	
 	// Fetch all locks
 	async getAllLocks() {
 		try {
@@ -60,6 +68,11 @@ class LockDataAPI {
 	// Fetch a specific lock by ID
 	async getLock(id) {
 		try {
+			// Check cache first
+			if (this.lockCache.has(id)) {
+				return this.lockCache.get(id);
+			}
+			
 			const response = await fetch(`${API_BASE}/lock/${id}?_embed`);
 			console.log(`response for lock ${id}:`, response);
 			if (!response.ok) {
@@ -107,6 +120,9 @@ class LockDataAPI {
 				askReason: askReason || null,
 				media: lock._embedded?.["wp:featuredmedia"]?.[0] || null,
 			};
+			
+			// Cache the result
+			this.lockCache.set(id, formattedLock);
 
 			return formattedLock;
 		} catch (error) {

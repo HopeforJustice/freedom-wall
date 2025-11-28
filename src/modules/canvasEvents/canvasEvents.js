@@ -19,6 +19,20 @@ const showIdMode = mode.isShowIdMode();
 
 console.log("Embed mode:", isEmbedMode);
 
+// Store interactive objects for optimized raycasting
+let interactiveObjects = [];
+
+// Export function to register interactive objects
+export function registerInteractiveObject(object) {
+	if (!interactiveObjects.includes(object)) {
+		interactiveObjects.push(object);
+	}
+}
+
+export function clearInteractiveObjects() {
+	interactiveObjects = [];
+}
+
 // Drag detection state
 let dragState = {
 	isDragging: false,
@@ -35,8 +49,9 @@ let touchState = {
 };
 
 /**
- * Handle mouse move for hover detection
+ * Handle mouse move for hover detection (debounced for performance)
  */
+let mouseMoveTimeout;
 function handleCanvasMouseMove(event) {
 	// Drag detection
 	if (dragState.dragStart.x !== null && dragState.dragStart.y !== null) {
@@ -50,35 +65,39 @@ function handleCanvasMouseMove(event) {
 		}
 	}
 
-	// Calculate mouse position in normalized device coordinates
-	const rect = canvas.getBoundingClientRect();
-	mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-	mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+	// Debounce raycasting for performance
+	clearTimeout(mouseMoveTimeout);
+	mouseMoveTimeout = setTimeout(() => {
+		// Calculate mouse position in normalized device coordinates
+		const rect = canvas.getBoundingClientRect();
+		mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+		mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-	// Update the raycaster
-	raycaster.setFromCamera(mouse, camera);
+		// Update the raycaster
+		raycaster.setFromCamera(mouse, camera);
 
-	// Find intersected objects
-	const intersects = raycaster.intersectObjects(scene.children, true);
+		// Only raycast against interactive objects (story buttons) for performance
+		const intersects = raycaster.intersectObjects(interactiveObjects, false);
 
-	let hoveredButton = null;
-	for (let intersect of intersects) {
-		const object = intersect.object;
+		let hoveredButton = null;
+		for (let intersect of intersects) {
+			const object = intersect.object;
 
-		// Check if this is a story button
-		if (object.userData && object.userData.isStoryButton) {
-			hoveredButton = object;
-			canvas.style.cursor = "pointer";
-			break;
+			// Check if this is a story button
+			if (object.userData && object.userData.isStoryButton) {
+				hoveredButton = object;
+				canvas.style.cursor = "pointer";
+				break;
+			}
 		}
-	}
 
-	if (!hoveredButton) {
-		canvas.style.cursor = "default";
-	}
+		if (!hoveredButton) {
+			canvas.style.cursor = "default";
+		}
 
-	// Update button hover state - pass the specific button or null
-	setButtonHover(hoveredButton);
+		// Update button hover state - pass the specific button or null
+		setButtonHover(hoveredButton);
+	}, 16); // Debounce to ~60fps
 }
 
 /**
@@ -103,33 +122,44 @@ function handleCanvasClick(event) {
 	// Update the raycaster
 	raycaster.setFromCamera(mouse, camera);
 
-	// Find intersected objects
-	const intersects = raycaster.intersectObjects(scene.children, true);
-
-	for (let intersect of intersects) {
+	// Find intersected objects - check interactive objects first for performance
+	const buttonIntersects = raycaster.intersectObjects(interactiveObjects, false);
+	
+	// Check interactive objects (buttons) first
+	for (let intersect of buttonIntersects) {
 		const object = intersect.object;
 
-		// Check if we are in edit mode
-		if (isInEditMode) {
-			// find lock id and open wordpress in new tab
-			if (object.userData && object.userData.lockInfo) {
-				const lockId = object.userData.lockInfo.id;
-				const wordpressUrl = `https://freedomwallcms.wpenginepowered.com/wp-admin/post.php?post=${lockId}&action=edit`;
-				window.open(wordpressUrl, "_blank");
-				break;
-			}
-		} else if (showIdMode) {
-			// find lock id and open wordpress in new tab
-			if (object.userData && object.userData.lockInfo) {
-				const lockId = object.userData.lockInfo.id;
-				alert(`Lock ID: ${lockId}`);
-			}
-		}
 		// Check if this is a story button
 		if (object.userData && object.userData.isStoryButton) {
 			// Handle story button click
 			showLockStory(object.userData.lockInfo);
-			break;
+			return; // Early exit after handling button
+		}
+	}
+	
+	// Only check all scene objects if in edit/showId mode
+	if (isInEditMode || showIdMode) {
+		const intersects = raycaster.intersectObjects(scene.children, true);
+		
+		for (let intersect of intersects) {
+			const object = intersect.object;
+
+			// Check if we are in edit mode
+			if (isInEditMode) {
+				// find lock id and open wordpress in new tab
+				if (object.userData && object.userData.lockInfo) {
+					const lockId = object.userData.lockInfo.id;
+					const wordpressUrl = `https://freedomwallcms.wpenginepowered.com/wp-admin/post.php?post=${lockId}&action=edit`;
+					window.open(wordpressUrl, "_blank");
+					break;
+				}
+			} else if (showIdMode) {
+				// find lock id and open wordpress in new tab
+				if (object.userData && object.userData.lockInfo) {
+					const lockId = object.userData.lockInfo.id;
+					alert(`Lock ID: ${lockId}`);
+				}
+			}
 		}
 	}
 }
@@ -230,8 +260,8 @@ function handleTouchTap(position) {
 	// Update the raycaster
 	raycaster.setFromCamera(mouse, camera);
 
-	// Find intersected objects
-	const intersects = raycaster.intersectObjects(scene.children, true);
+	// Only raycast against interactive objects for performance
+	const intersects = raycaster.intersectObjects(interactiveObjects, false);
 
 	for (let intersect of intersects) {
 		const object = intersect.object;
