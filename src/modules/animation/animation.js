@@ -10,6 +10,7 @@ import { renderer } from "../globals/globals.js";
 import { mixer } from "../globals/globals.js";
 import { updateCameraAnimation } from "./cameraAnimation.js";
 import { updateButtonAnimation } from "./buttonAnimation.js";
+import { updateSmoothZoom } from "../camera/cameraControls.js";
 
 const clock = new THREE.Clock();
 
@@ -18,6 +19,9 @@ export const tick = () => {
 
 	// Update camera animation
 	updateCameraAnimation();
+
+	// Update smooth zoom
+	updateSmoothZoom();
 
 	// Update button animation
 	updateButtonAnimation(deltaTime);

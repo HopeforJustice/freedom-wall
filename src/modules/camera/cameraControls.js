@@ -12,8 +12,15 @@ import { isCameraAnimating } from "../animation/cameraAnimation.js";
 const zoomSettings = {
 	minDistance: 20,
 	maxDistance: 50,
-	zoomSpeed: 5.0,
-	smoothFactor: 0.5, // For smooth zoom transitions
+	zoomSpeed: 3.0, // Reduced for smoother feel
+	smoothFactor: 0.1, // Slower lerp for smoother transitions
+};
+
+// Smooth zoom state
+const zoomState = {
+	targetDistance: null,
+	currentVelocity: 0,
+	lastUpdateTime: performance.now(),
 };
 
 /**
@@ -28,50 +35,50 @@ export function handleZoom(event) {
 
 	event.preventDefault();
 
-	// Get the current camera position
-	const currentPosition = camera.position.clone();
-
-	// Calculate the direction from camera to the point it's looking at
-	// We'll assume the camera is looking at z=0 (the wall plane)
-	const lookAtPoint = new THREE.Vector3(
-		currentPosition.x,
-		currentPosition.y,
-		0
-	);
-	const direction = new THREE.Vector3()
-		.subVectors(lookAtPoint, currentPosition)
-		.normalize();
+	// Initialize target distance if not set
+	if (zoomState.targetDistance === null) {
+		zoomState.targetDistance = Math.abs(camera.position.z);
+	}
 
 	// Calculate zoom delta based on wheel movement
 	// Normalize deltaY for different devices/browsers
-	// Flip the direction: negative deltaY (scroll down) zooms in, positive deltaY (scroll up) zooms out
 	const normalizedDelta =
-		(-Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 100)) / 100;
+		(Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 100)) / 100;
 	const delta = normalizedDelta * zoomSettings.zoomSpeed;
 
-	// Calculate new position by moving along the direction vector
-	const newPosition = currentPosition
-		.clone()
-		.add(direction.clone().multiplyScalar(delta));
-
-	// Calculate distance from the wall (z=0)
-	const distanceFromWall = Math.abs(newPosition.z);
-
-	// Clamp the distance within our limits
-	const clampedDistance = Math.max(
+	// Update target distance (zoom in = decrease distance, zoom out = increase distance)
+	zoomState.targetDistance = Math.max(
 		zoomSettings.minDistance,
-		Math.min(zoomSettings.maxDistance, distanceFromWall)
+		Math.min(zoomSettings.maxDistance, zoomState.targetDistance + delta)
 	);
+}
 
-	// Set the final position with clamped distance
-	const finalPosition = new THREE.Vector3(
-		currentPosition.x,
-		currentPosition.y,
-		Math.sign(newPosition.z) * clampedDistance
-	);
+/**
+ * Update smooth zoom - call this in the animation loop
+ */
+export function updateSmoothZoom() {
+	if (zoomState.targetDistance === null || isCameraAnimating()) {
+		return;
+	}
 
-	// Smoothly transition to new position
-	camera.position.lerp(finalPosition, zoomSettings.smoothFactor);
+	const currentDistance = Math.abs(camera.position.z);
+	const distanceDiff = zoomState.targetDistance - currentDistance;
+
+	// Only update if there's a meaningful difference
+	if (Math.abs(distanceDiff) > 0.01) {
+		// Smooth lerp to target distance
+		const newDistance = THREE.MathUtils.lerp(
+			currentDistance,
+			zoomState.targetDistance,
+			zoomSettings.smoothFactor
+		);
+
+		// Maintain x and y position, only update z
+		camera.position.z = Math.sign(camera.position.z) * newDistance;
+	} else {
+		// Snap to target when close enough
+		camera.position.z = Math.sign(camera.position.z) * zoomState.targetDistance;
+	}
 }
 
 /**
