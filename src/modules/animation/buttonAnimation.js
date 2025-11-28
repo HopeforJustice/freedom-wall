@@ -147,7 +147,7 @@ export function createStoryButton(lockObject) {
 	// Apply texture to button
 	storyButton3D.material.map = texture;
 	storyButton3D.material.needsUpdate = true;
-	
+
 	// After initial setup, don't update material again
 	setTimeout(() => {
 		storyButton3D.material.needsUpdate = false;
@@ -178,7 +178,7 @@ export function createStoryButton(lockObject) {
 
 	// Add to buttons array
 	storyButtons.push(storyButton3D);
-	
+
 	// Register with raycasting system for optimized intersection
 	registerInteractiveObject(storyButton3D);
 

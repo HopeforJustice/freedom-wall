@@ -76,10 +76,10 @@ const createRenderer = () => {
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.setSize(sizes.width, sizes.height);
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-	
+
 	// Enable optimizations
 	renderer.sortObjects = true; // Enable object sorting for better rendering
-	
+
 	return renderer;
 };
 export const renderer = createRenderer();

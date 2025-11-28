@@ -100,12 +100,12 @@ export async function waitForFontLoad(fontFamily, timeout = 3000) {
 	if (fontLoaded) {
 		return true;
 	}
-	
+
 	// Return existing promise if already loading
 	if (fontLoadPromise) {
 		return fontLoadPromise;
 	}
-	
+
 	// Start loading and cache the promise
 	fontLoadPromise = (async () => {
 		try {
@@ -118,7 +118,7 @@ export async function waitForFontLoad(fontFamily, timeout = 3000) {
 			return false;
 		}
 	})();
-	
+
 	return fontLoadPromise;
 }
 

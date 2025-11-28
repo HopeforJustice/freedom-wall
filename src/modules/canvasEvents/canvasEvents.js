@@ -123,8 +123,11 @@ function handleCanvasClick(event) {
 	raycaster.setFromCamera(mouse, camera);
 
 	// Find intersected objects - check interactive objects first for performance
-	const buttonIntersects = raycaster.intersectObjects(interactiveObjects, false);
-	
+	const buttonIntersects = raycaster.intersectObjects(
+		interactiveObjects,
+		false
+	);
+
 	// Check interactive objects (buttons) first
 	for (let intersect of buttonIntersects) {
 		const object = intersect.object;
@@ -136,11 +139,11 @@ function handleCanvasClick(event) {
 			return; // Early exit after handling button
 		}
 	}
-	
+
 	// Only check all scene objects if in edit/showId mode
 	if (isInEditMode || showIdMode) {
 		const intersects = raycaster.intersectObjects(scene.children, true);
-		
+
 		for (let intersect of intersects) {
 			const object = intersect.object;
 

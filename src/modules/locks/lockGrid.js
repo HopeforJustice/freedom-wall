@@ -32,22 +32,22 @@ const lockModelPaths = [
 export async function loadLockModels() {
 	const loadPromises = lockModelPaths.map((path) => {
 		return new Promise((resolve, reject) => {
-				gltfLoader.load(
-					path,
-					(gltf) => {
-						// Set up shadow settings for the model
-						gltf.scene.traverse(function (node) {
-							if (node.isMesh) {
-								node.castShadow = true;
-								node.receiveShadow = true;
-								// Optimize: don't update materials every frame
-								if (node.material) {
-									node.material.needsUpdate = false;
-								}
+			gltfLoader.load(
+				path,
+				(gltf) => {
+					// Set up shadow settings for the model
+					gltf.scene.traverse(function (node) {
+						if (node.isMesh) {
+							node.castShadow = true;
+							node.receiveShadow = true;
+							// Optimize: don't update materials every frame
+							if (node.material) {
+								node.material.needsUpdate = false;
 							}
-						});
-						resolve(gltf.scene);
-					},
+						}
+					});
+					resolve(gltf.scene);
+				},
 				undefined,
 				reject
 			);
@@ -70,7 +70,7 @@ export async function loadLockModels() {
 function clearLockGrid() {
 	// Clear interactive objects registry
 	clearInteractiveObjects();
-	
+
 	// Remove all current lock meshes from scene
 	currentLockMeshes.forEach((mesh) => {
 		scene.remove(mesh);
@@ -92,7 +92,7 @@ function clearLockGrid() {
 	// Clear the arrays
 	currentLockMeshes.length = 0;
 	textPlanes.length = 0;
-	
+
 	// Clear material cache
 	textMaterialCache.clear();
 
