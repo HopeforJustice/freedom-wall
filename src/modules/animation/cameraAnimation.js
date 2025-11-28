@@ -9,6 +9,7 @@ import { camera } from "../camera/camera.js";
 import { scene } from "../globals/globals.js";
 import { renderer } from "../globals/globals.js";
 import { canvas } from "../globals/globals.js";
+import { syncZoomState } from "../camera/cameraControls.js";
 import {
 	getRandomLock,
 	getRandomLockWithStory,
@@ -231,6 +232,9 @@ export function updateCameraAnimation() {
 	if (progress >= 1) {
 		cameraAnimation.isAnimating = false;
 
+		// Sync zoom state to prevent jump back to old scroll position
+		syncZoomState();
+
 		// Call completion callback if provided
 		if (cameraAnimation.onComplete) {
 			cameraAnimation.onComplete();
@@ -313,11 +317,11 @@ export function createIntroAnimation(options = {}) {
 /**
  * Find a new story by zooming out and then into a random story lock
  * @param {Object} options - Animation options
- * @param {number} options.zoomOutDistance - How far to zoom out (default: 50)
+ * @param {number} options.zoomOutDistance - Target distance to zoom out to (default: 45)
  * @param {number} options.duration - Duration for each phase in ms (default: 1500)
  */
 export function findNewStory(options = {}) {
-	const { zoomOutDistance = 50, duration = 1500 } = options;
+	const { zoomOutDistance = 45, duration = 1500 } = options;
 
 	// Don't start if animation is already running
 	if (isCameraAnimating()) {
@@ -328,11 +332,11 @@ export function findNewStory(options = {}) {
 	// Store the current camera position to calculate zoom out position
 	const currentPosition = camera.position.clone();
 
-	// Calculate zoom out position - move camera back along Z axis
+	// Calculate zoom out position - use zoomOutDistance as the target Z distance from wall
 	const zoomOutPosition = new THREE.Vector3(
 		currentPosition.x,
 		currentPosition.y,
-		currentPosition.z + zoomOutDistance
+		Math.sign(currentPosition.z) * zoomOutDistance // Use as absolute distance, not relative
 	);
 
 	console.log("Starting find new story animation...");

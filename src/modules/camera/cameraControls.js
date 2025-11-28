@@ -96,3 +96,10 @@ export function getZoomSettings() {
 export function updateZoomSettings(newSettings) {
 	Object.assign(zoomSettings, newSettings);
 }
+
+/**
+ * Sync zoom state with current camera position (call after camera animations)
+ */
+export function syncZoomState() {
+	zoomState.targetDistance = Math.abs(camera.position.z);
+}
