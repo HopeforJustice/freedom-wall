@@ -26,11 +26,16 @@ class DonationUrl {
 		await this._ready;
 
 		let donateURL = "https://donate.hopeforjustice.org/?";
+		let wordpressURL = "https://hopeforjustice.org/2025-eoy/";
 		const campaign = this.getCampaign();
 		const currency = this.getCurrency();
 		const image =
 			"https://hopeforjustice.org/wp-content/uploads/2025/11/fw-close-nosp.jpg";
 		donateURL += `image=${encodeURIComponent(image)}&givingFrequency=once&`;
+
+		if (!amount) {
+			return wordpressURL; // no amount -> go to wordpress site
+		}
 
 		if (amount && currency) {
 			const encodedAmount = encodeURIComponent(amount);
