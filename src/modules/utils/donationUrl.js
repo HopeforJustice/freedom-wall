@@ -18,7 +18,7 @@ class DonationUrl {
 	getCampaign() {
 		const params = new URLSearchParams(window.location.search);
 		const campaign = params.get("campaign");
-		return campaign ? campaign : "2025 EOY";
+		return campaign ? campaign : "Donation App General Campaign";
 	}
 
 	async getUrl(amount = null) {
