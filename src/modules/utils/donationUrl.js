@@ -26,7 +26,7 @@ class DonationUrl {
 		await this._ready;
 
 		let donateURL = "https://donate.hopeforjustice.org/?";
-		let wordpressURL = "https://hopeforjustice.org/2025-eoy/";
+		let wordpressURL = "https://hopeforjustice.org/donate/";
 		const campaign = this.getCampaign();
 		const currency = this.getCurrency();
 		const image =

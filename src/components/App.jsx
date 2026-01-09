@@ -11,7 +11,7 @@ function App() {
 	const [modalType, setModalType] = useState("story");
 	const [lockInfo, setLockInfo] = useState(null);
 	const windowSize = typeof window !== "undefined" ? window.innerWidth : 0;
-	const doubled = true;
+	const doubled = false;
 	const [isEmbedded, setIsEmbedded] = useState(false);
 	const [overlayData, setOverlayData] = useState(null);
 	const [donateUrl, setDonateUrl] = useState("#");

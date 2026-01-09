@@ -386,9 +386,7 @@ export default function Modal({
 											doubled && (
 												<p className="text-sm mt-10">
 													Name and image changed to protect the survivor’s
-													identity. Gifts given before December 31st 2025 will
-													be doubled up to a global total of $650,000 /
-													£500,000.{" "}
+													identity.{" "}
 												</p>
 											)}
 										{type === "info" && isEmbedded === false && (
