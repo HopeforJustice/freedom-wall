@@ -33,6 +33,10 @@ class DonationUrl {
 			"https://hopeforjustice.org/wp-content/uploads/2025/11/fw-close-nosp.jpg";
 		donateURL += `image=${encodeURIComponent(image)}&givingFrequency=once&`;
 
+		if (campaign) {
+			wordpressURL += `?campaign=${encodeURIComponent(campaign)}`;
+		}
+
 		if (!amount) {
 			return wordpressURL; // no amount -> go to wordpress site
 		}
