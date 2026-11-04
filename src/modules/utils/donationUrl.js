@@ -18,15 +18,17 @@ class DonationUrl {
 	getCampaign() {
 		const params = new URLSearchParams(window.location.search);
 		const campaign = params.get("campaign");
-		return campaign ? campaign : "Freedom Wall";
+		return campaign ? campaign : "2026 EOY";
 	}
 
 	async getUrl(amount = null) {
 		// Ensure userLocation is ready
 		await this._ready;
 
-		let donateURL = "https://donate.hopeforjustice.org/?";
-		let wordpressURL = "https://hopeforjustice.org/donate/";
+		let donateURL =
+			"https://donate.hopeforjustice.org/?utm_source=freedom_wall_story&utm_medium=internal_link&utm_campaign=2026_eoy&tlxs=freedom_wall_story&tlxm=internal_link&tlxc=2026_eoy&";
+		let wordpressURL =
+			"https://hopeforjustice.org/bring-hope-home/?utm_source=freedom_wall_give&utm_medium=internal_link&utm_campaign=2026_eoy&tlxs=freedom_wall_give&tlxm=internal_link&tlxc=2026_eoy";
 		const campaign = this.getCampaign();
 		const currency = this.getCurrency();
 		const image =
@@ -34,7 +36,7 @@ class DonationUrl {
 		donateURL += `image=${encodeURIComponent(image)}&givingFrequency=once&`;
 
 		if (campaign) {
-			wordpressURL += `?campaign=${encodeURIComponent(campaign)}`;
+			wordpressURL += `&campaign=${encodeURIComponent(campaign)}`;
 		}
 
 		if (!amount) {
